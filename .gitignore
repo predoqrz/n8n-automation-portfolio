@@ -1,0 +1,24 @@
+# Segredos — nunca commitar
+.env
+*.key
+*.pem
+credentials*.json
+
+# Dados locais do n8n
+infra/local-files/
+infra/data/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

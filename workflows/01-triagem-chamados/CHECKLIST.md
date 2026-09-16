@@ -130,8 +130,9 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
 - [ ] GIF do e-mail virando página, em `assets/`
 - [ ] Print do canvas com os dois caminhos, em `assets/`
 - [ ] Preencher no README: **Tempo de construção**, **Resultado**
-- [ ] Anotar em *O que não funcionou* **tudo** que quebrou nas etapas 2, 4 e 5 —
-      é o conteúdo que o post 1 prometeu e não pode ser inventado
+- [ ] Passar as anotações de construção do Obsidian para *O que não funcionou* —
+      **tudo** que quebrou nas etapas 2, 4 e 5. É o conteúdo que o post 1 prometeu, e
+      é a única seção que não dá para escrever depois, de memória
 - [ ] Status do README: 🚧 → ✅
 - [ ] Revisar o export: nenhum ID, e-mail ou token dentro de nó
 - [ ] Ativar o workflow (toggle **Active**)

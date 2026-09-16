@@ -84,9 +84,14 @@ function lerEnv() {
   return env;
 }
 
+// Interrompe com uma mensagem legível. Lança em vez de chamar process.exit():
+// no Windows, sair à força logo depois de um fetch derruba o Node com
+// "Assertion failed ... async.c", e o script terminava com código de erro
+// mesmo quando tinha dado certo.
+class FalhaAmigavel extends Error {}
+
 function erro(...linhas) {
-  console.error('\n  ✗ ' + linhas.join('\n    ') + '\n');
-  process.exit(1);
+  throw new FalhaAmigavel(linhas.join('\n    '));
 }
 
 /** Aceita o ID com ou sem hífen, e também a URL inteira colada do navegador. */
@@ -166,7 +171,7 @@ async function criar(env) {
   console.log('  Cole esta linha no .env:\n');
   console.log(`      NOTION_DATABASE_CHAMADOS=${id}\n`);
   console.log('  Depois recrie o container para o n8n enxergar a variável:\n');
-  console.log('      docker compose -f infra/docker-compose.yml up -d --force-recreate n8n\n');
+  console.log('      docker compose -f infra/docker-compose.yml --env-file .env up -d --force-recreate n8n\n');
 }
 
 async function conferir(env) {
@@ -220,8 +225,14 @@ async function conferir(env) {
   console.log(problemas
     ? `\n  ${problemas} propriedade(s) precisam de ajuste antes de rodar o fluxo.\n`
     : '\n  ✓ Database pronto para o workflow 01.\n');
-  process.exit(problemas ? 1 : 0);
+  process.exitCode = problemas ? 1 : 0;
 }
 
-const env = lerEnv();
-await (process.argv.includes('--conferir') ? conferir(env) : criar(env));
+try {
+  const env = lerEnv();
+  await (process.argv.includes('--conferir') ? conferir(env) : criar(env));
+} catch (e) {
+  if (!(e instanceof FalhaAmigavel)) throw e;
+  console.error(`\n  ✗ ${e.message}\n`);
+  process.exitCode = 1;
+}

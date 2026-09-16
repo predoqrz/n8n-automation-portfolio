@@ -184,7 +184,7 @@ O ID do database são os 32 caracteres da URL, entre a barra e o `?v=`.
 Preencha no `.env` (veja `.env.example`) e recrie o container para que o n8n enxergue:
 
 ```bash
-docker compose -f infra/docker-compose.yml up -d --force-recreate n8n
+docker compose -f infra/docker-compose.yml --env-file .env up -d --force-recreate n8n
 ```
 
 ### 5. Credenciais no n8n

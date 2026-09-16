@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 2 — Postgres concluído, começando o Notion
+**Onde eu parei:** etapa 2 — database criado e conferido; falta a visão Revisão manual e a credencial Notion no n8n
 
 ---
 
@@ -41,19 +41,19 @@ A mais fácil, e destrava o teste do nó 3.
 
 ## Etapa 2 — Notion (30 min)
 
-- [ ] Criar uma página no Notion para o projeto (ex.: `Portfólio n8n`)
-- [ ] Criar a integração em `notion.so/my-integrations` → **New integration** →
-      workspace pessoal → copiar o *Internal Integration Secret*
-- [ ] **Conectar a integração na página:** abra a página → `⋯` → **Connections** →
+- [x] Criar uma página no Notion para o projeto (ex.: `Portfólio n8n`)
+- [x] Criar a conexão em **Developer tools → Connections → New connection** (o Notion
+      renomeou *integration* para *connection*) → copiar o token
+- [x] **Conectar a integração na página:** abra a página → `⋯` → **Connections** →
       **Connect to** → sua integração
-- [ ] Preencher no `.env`: `NOTION_TOKEN` e `NOTION_PARENT_PAGE_ID` (pode colar a URL inteira)
-- [ ] Criar o database:
+- [x] Preencher no `.env`: `NOTION_TOKEN` e `NOTION_PARENT_PAGE_ID` (pode colar a URL inteira)
+- [x] Criar o database:
       `node workflows/01-triagem-chamados/scripts/notion-database.mjs`
-- [ ] Copiar o ID que o script imprimiu para `NOTION_DATABASE_CHAMADOS` no `.env`
-- [ ] Conferir:
+- [x] Copiar o ID que o script imprimiu para `NOTION_DATABASE_CHAMADOS` no `.env`
+- [x] Conferir:
       `node workflows/01-triagem-chamados/scripts/notion-database.mjs --conferir`
-- [ ] Recriar o container para o n8n enxergar a variável:
-      `docker compose -f infra/docker-compose.yml up -d --force-recreate n8n`
+- [x] Recriar o container para o n8n enxergar a variável:
+      `docker compose -f infra/docker-compose.yml --env-file .env up -d --force-recreate n8n`
 - [ ] No Notion, criar a visão **Revisão manual**, filtrando `Categoria = Revisão manual`
 - [ ] No n8n, criar a credencial Notion com o mesmo token
 
@@ -164,6 +164,10 @@ Registrado na hora, para a seção *O que não funcionou* do README.
 | Etapa | O que | Sintoma | Solução |
 |---|---|---|---|
 | — | `<` de redirecionamento não existe no PowerShell | O comando falha antes de chegar no `psql` | `docker cp` + `psql -f`, que funciona nos três sistemas |
+| 2 | Comando de recriar o container sem `--env-file .env` | O Compose procura o `.env` na pasta do `docker-compose.yml` (`infra/`), sobe o n8n com variáveis vazias e ele perde o banco | Sempre `docker compose -f infra/docker-compose.yml --env-file .env ...` — pego antes de rodar |
+| 2 | Token do Notion visível num print compartilhado | Segredo exposto fora do `.env` | Regenerar o token na conexão |
+| 2 | `process.exit()` logo depois de `fetch` no Node/Windows | `Assertion failed ... async.c` e código de saída de erro com o resultado certo | Lançar erro e usar `process.exitCode` |
+| 2 | Tela do Notion mudou | *My integrations* virou *Developer tools → Connections* | Documentação atualizada |
 | 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |
 
 ## Onde isso provavelmente vai quebrar

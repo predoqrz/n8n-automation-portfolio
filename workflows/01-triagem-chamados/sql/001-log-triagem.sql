@@ -20,12 +20,12 @@ CREATE TABLE IF NOT EXISTS portfolio.log_triagem (
     confianca       NUMERIC(4,3),
     destino         TEXT        NOT NULL,
     motivo          TEXT,
-    trello_card_id  TEXT,
-    trello_card_url TEXT,
+    notion_page_id  TEXT,
+    notion_page_url TEXT,
     processado_em   TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     -- Esta constraint é a garantia real de idempotência: mesmo que a label do
-    -- Gmail falhe ao ser aplicada, o mesmo e-mail não vira dois cartões.
+    -- Gmail falhe ao ser aplicada, o mesmo e-mail não vira duas páginas.
     CONSTRAINT log_triagem_mensagem_id_unico UNIQUE (mensagem_id)
 );
 

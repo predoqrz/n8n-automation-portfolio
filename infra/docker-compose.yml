@@ -51,11 +51,7 @@ services:
       # Não são segredos, mas são IDs específicos da sua conta: ficam aqui e
       # são lidos nos nós com {{$env.NOME}}, nunca digitados dentro do nó.
       GMAIL_LABEL_PROCESSADO: ${GMAIL_LABEL_PROCESSADO}
-      TRELLO_LIST_ACESSO: ${TRELLO_LIST_ACESSO}
-      TRELLO_LIST_REDE: ${TRELLO_LIST_REDE}
-      TRELLO_LIST_EQUIPAMENTO: ${TRELLO_LIST_EQUIPAMENTO}
-      TRELLO_LIST_SISTEMAS: ${TRELLO_LIST_SISTEMAS}
-      TRELLO_LIST_REVISAO: ${TRELLO_LIST_REVISAO}
+      NOTION_DATABASE_CHAMADOS: ${NOTION_DATABASE_CHAMADOS}
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files

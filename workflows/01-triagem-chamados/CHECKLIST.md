@@ -24,10 +24,12 @@ Nada disso foi executado ainda. É desenho, não fluxo funcionando.
 
 A mais fácil, e destrava o teste do nó 3.
 
-- [ ] Criar a tabela de log:
-      `docker exec -i n8n-postgres psql -U n8n -d n8n < workflows/01-triagem-chamados/sql/001-log-triagem.sql`
+- [ ] Copiar o SQL para dentro do container:
+      `docker cp workflows/01-triagem-chamados/sql/001-log-triagem.sql n8n-postgres:/tmp/001-log-triagem.sql`
+- [ ] Executar:
+      `docker exec n8n-postgres psql -U n8n -d n8n -f /tmp/001-log-triagem.sql`
 - [ ] Conferir que existe:
-      `docker exec -it n8n-postgres psql -U n8n -d n8n -c "\d portfolio.log_triagem"`
+      `docker exec n8n-postgres psql -U n8n -d n8n -c "\d portfolio.log_triagem"`
 - [ ] No n8n, criar a credencial Postgres — host `postgres`, porta `5432`, base `n8n`,
       usuário e senha do `.env`
 - [ ] Botão **Test connection** verde
@@ -117,7 +119,7 @@ Os e-mails prontos para copiar estão no [README](README.md), seção *Como test
       `Ignorar duplicado`, **sem** criar segunda página
 - [ ] **Caso 4** — desligar a credencial OpenAI → `Revisão manual` com o erro no `Triagem`
 - [ ] Conferir a tabela:
-      `docker exec -it n8n-postgres psql -U n8n -d n8n -c "SELECT processado_em, categoria, urgencia, confianca, destino FROM portfolio.log_triagem ORDER BY processado_em DESC;"`
+      `docker exec n8n-postgres psql -U n8n -d n8n -c "SELECT processado_em, categoria, urgencia, confianca, destino FROM portfolio.log_triagem ORDER BY processado_em DESC;"`
 
 Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feliz.
 

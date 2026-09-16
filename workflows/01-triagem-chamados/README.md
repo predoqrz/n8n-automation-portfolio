@@ -138,8 +138,16 @@ falhas fora dos caminhos previstos.
 
 ### 1. Tabela de log
 
+Copia o arquivo para dentro do container e executa. São dois comandos em vez de um
+redirecionamento `<` porque o PowerShell não tem esse operador — assim funciona igual no
+Windows, no Linux e no macOS.
+
 ```bash
-docker exec -i n8n-postgres psql -U n8n -d n8n < workflows/01-triagem-chamados/sql/001-log-triagem.sql
+docker cp workflows/01-triagem-chamados/sql/001-log-triagem.sql n8n-postgres:/tmp/001-log-triagem.sql
+```
+
+```bash
+docker exec n8n-postgres psql -U n8n -d n8n -f /tmp/001-log-triagem.sql
 ```
 
 ### 2. Labels no Gmail
@@ -216,7 +224,7 @@ chamado em `Revisão manual` com o `motivo` mostrando o erro.
 Conferindo o resultado no banco:
 
 ```bash
-docker exec -it n8n-postgres psql -U n8n -d n8n -c "SELECT processado_em, categoria, urgencia, confianca, destino, assunto FROM portfolio.log_triagem ORDER BY processado_em DESC LIMIT 20;"
+docker exec n8n-postgres psql -U n8n -d n8n -c "SELECT processado_em, categoria, urgencia, confianca, destino, assunto FROM portfolio.log_triagem ORDER BY processado_em DESC LIMIT 20;"
 ```
 
 Payload que o LLM deve devolver:

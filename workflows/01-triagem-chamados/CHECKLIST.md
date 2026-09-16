@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 1 — tabela criada e conferida, falta a credencial Postgres no n8n
+**Onde eu parei:** etapa 2 — Postgres concluído, começando o Notion
 
 ---
 
@@ -20,7 +20,7 @@ O fluxo em si ainda não rodou: até aqui é desenho, não automação funcionan
 
 ---
 
-## Etapa 1 — Postgres (15 min)
+## Etapa 1 — Postgres ✅
 
 A mais fácil, e destrava o teste do nó 3.
 
@@ -30,9 +30,9 @@ A mais fácil, e destrava o teste do nó 3.
       `docker exec n8n-postgres psql -U n8n -d n8n -f /tmp/001-log-triagem.sql`
 - [x] Conferir que existe:
       `docker exec n8n-postgres psql -U n8n -d n8n -c "\d portfolio.log_triagem"`
-- [ ] No n8n, criar a credencial Postgres — host `postgres`, porta `5432`, base `n8n`,
+- [x] No n8n, criar a credencial Postgres — host `postgres`, porta `5432`, base `n8n`,
       usuário e senha do `.env`
-- [ ] Botão **Test connection** verde
+- [x] Botão **Test connection** verde
 
 > Host é `postgres`, não `localhost`. De dentro do container do n8n, `localhost` é o
 > próprio n8n. `postgres` é o nome do serviço no compose, e o Docker resolve como DNS.

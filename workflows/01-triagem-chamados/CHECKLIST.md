@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 2 — database criado e conferido; falta a visão Revisão manual e a credencial Notion no n8n
+**Onde eu parei:** etapa 2 — database criado e conferido; falta regenerar o token do Notion e criar a credencial no n8n
 
 ---
 
@@ -54,7 +54,7 @@ A mais fácil, e destrava o teste do nó 3.
       `node workflows/01-triagem-chamados/scripts/notion-database.mjs --conferir`
 - [x] Recriar o container para o n8n enxergar a variável:
       `docker compose -f infra/docker-compose.yml --env-file .env up -d --force-recreate n8n`
-- [ ] No Notion, criar a visão **Revisão manual**, filtrando `Categoria = Revisão manual`
+- [x] No Notion, criar a visão **Revisão manual**, filtrando `Categoria = Revisão manual`
 - [ ] No n8n, criar a credencial Notion com o mesmo token
 
 > O passo de **Connections** é o que mais gente esquece. Sem ele a API responde

@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 2 — database criado e conferido; falta regenerar o token do Notion e criar a credencial no n8n
+**Onde eu parei:** etapa 2 — database criado e conferido; falta criar a credencial Notion no n8n
 
 ---
 
@@ -165,7 +165,7 @@ Registrado na hora, para a seção *O que não funcionou* do README.
 |---|---|---|---|
 | — | `<` de redirecionamento não existe no PowerShell | O comando falha antes de chegar no `psql` | `docker cp` + `psql -f`, que funciona nos três sistemas |
 | 2 | Comando de recriar o container sem `--env-file .env` | O Compose procura o `.env` na pasta do `docker-compose.yml` (`infra/`), sobe o n8n com variáveis vazias e ele perde o banco | Sempre `docker compose -f infra/docker-compose.yml --env-file .env ...` — pego antes de rodar |
-| 2 | Token do Notion visível num print compartilhado | Segredo exposto fora do `.env` | Regenerar o token na conexão |
+| 2 | Token do Notion visível num print compartilhado | Segredo exposto fora do `.env` | Decisão consciente de não regenerar; print apagado e nenhum print do `.env` vai para post. Regenerar se houver qualquer vazamento |
 | 2 | `process.exit()` logo depois de `fetch` no Node/Windows | `Assertion failed ... async.c` e código de saída de erro com o resultado certo | Lançar erro e usar `process.exitCode` |
 | 2 | Tela do Notion mudou | *My integrations* virou *Developer tools → Connections* | Documentação atualizada |
 | 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |

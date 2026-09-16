@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 3 — OpenAI
+**Onde eu parei:** etapa 4 — Gmail
 
 ---
 
@@ -64,11 +64,11 @@ A mais fácil, e destrava o teste do nó 3.
 
 ---
 
-## Etapa 3 — OpenAI (10 min)
+## Etapa 3 — OpenAI ✅
 
-- [ ] Confirmar que `OPENAI_API_KEY` no `.env` tem crédito na conta
-- [ ] Criar a credencial OpenAI no n8n
-- [ ] Conferir o modelo do nó `Modelo OpenAI` — `gpt-4o-mini` é o padrão barato;
+- [x] Confirmar que `OPENAI_API_KEY` no `.env` tem crédito na conta
+- [x] Criar a credencial OpenAI no n8n
+- [x] Conferir o modelo do nó `Modelo OpenAI` — `gpt-4o-mini` é o padrão barato;
       troque se quiser
 
 ---

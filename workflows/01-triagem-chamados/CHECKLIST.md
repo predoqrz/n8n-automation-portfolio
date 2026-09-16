@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 1
+**Onde eu parei:** etapa 1 — tabela criada e conferida, falta a credencial Postgres no n8n
 
 ---
 
@@ -16,7 +16,7 @@ testável sozinha, e as mais chatas ficam por último, quando o resto já funcio
 - [x] Script que cria o database do Notion
 - [x] README com decisões técnicas
 
-Nada disso foi executado ainda. É desenho, não fluxo funcionando.
+O fluxo em si ainda não rodou: até aqui é desenho, não automação funcionando.
 
 ---
 
@@ -24,11 +24,11 @@ Nada disso foi executado ainda. É desenho, não fluxo funcionando.
 
 A mais fácil, e destrava o teste do nó 3.
 
-- [ ] Copiar o SQL para dentro do container:
+- [x] Copiar o SQL para dentro do container:
       `docker cp workflows/01-triagem-chamados/sql/001-log-triagem.sql n8n-postgres:/tmp/001-log-triagem.sql`
-- [ ] Executar:
+- [x] Executar:
       `docker exec n8n-postgres psql -U n8n -d n8n -f /tmp/001-log-triagem.sql`
-- [ ] Conferir que existe:
+- [x] Conferir que existe:
       `docker exec n8n-postgres psql -U n8n -d n8n -c "\d portfolio.log_triagem"`
 - [ ] No n8n, criar a credencial Postgres — host `postgres`, porta `5432`, base `n8n`,
       usuário e senha do `.env`
@@ -156,6 +156,15 @@ revisão humana. Fecha com pergunta específica: *onde você colocaria esse limi
 - [ ] Postado
 
 ---
+
+## O que já quebrou
+
+Registrado na hora, para a seção *O que não funcionou* do README.
+
+| Etapa | O que | Sintoma | Solução |
+|---|---|---|---|
+| — | `<` de redirecionamento não existe no PowerShell | O comando falha antes de chegar no `psql` | `docker cp` + `psql -f`, que funciona nos três sistemas |
+| 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |
 
 ## Onde isso provavelmente vai quebrar
 

@@ -1,7 +1,7 @@
 # 01 — Triagem automática de chamados
 
 **Status:** 🚧 Em construção
-**Tempo de construção:** a preencher
+**Tempo de construção:** ~5 h registradas em commits, em 3 sessões (15 a 17/09/2026) — piso; a configuração das contas no Google e no Notion ficou fora desse relógio
 **Integrações:** Gmail · OpenAI · Notion · PostgreSQL
 **Competências demonstradas:** trigger de e-mail com filtro, LLM com saída estruturada e
 schema validado, roteamento condicional por confiança, idempotência com banco, log de
@@ -154,20 +154,82 @@ flowchart LR
   segredo, eles ficam no nó; o que é segredo continua nas credenciais. Bônus: com o database
   fixo, o editor volta a listar as propriedades do Notion.
 
-- **O que não funcionou — a falha silenciosa:** no primeiro teste real, o LLM classificou o
-  e-mail do Wi-Fi corretamente (`Rede`, `Alta`, confiança `0.9`), e o nó *Validar
-  classificação* transformou a resposta em `Revisão manual`, `Baixa`, confiança `0`. O código
-  lia `$json.categoria`, mas o Basic LLM Chain com output parser entrega tudo dentro de
-  `$json.output`. Nenhum nó deu erro: a validação fez exatamente o que devia com um dado que
-  parecia vazio, e **todo** chamado passaria a ir para revisão manual. A proteção evitou um
-  cartão na fila errada, mas escondeu o bug. Foi pego só porque o teste comparou a resposta
-  do LLM com a saída da validação, e não apenas o status verde da execução.
+## O que não funcionou
 
-- **O que não funcionou:** a primeira versão montava o item de revisão manual com
-  `includeOtherFields: true`, aproveitando o que viesse. Funcionava no caminho de confiança
-  baixa e quebrava no caminho de erro do LLM, onde o `$json` contém só o objeto de erro.
-  Os dois caminhos entram no mesmo nó, então ele passou a reconstruir tudo a partir de
-  `$('Normalizar campos do chamado')`.
+Registrado na hora em que aconteceu, não reconstruído de memória. Os três primeiros são
+bugs de desenho que passariam despercebidos num teste que só olha se a execução ficou verde.
+
+### No fluxo
+
+- **A falha silenciosa.** No primeiro teste real, o LLM classificou o e-mail do Wi-Fi
+  corretamente (`Rede`, `Alta`, confiança `0.9`), e o nó *Validar classificação* transformou
+  a resposta em `Revisão manual`, `Baixa`, confiança `0`. O código lia `$json.categoria`, mas
+  o Basic LLM Chain com output parser entrega tudo dentro de `$json.output`. Nenhum nó deu
+  erro: a validação fez exatamente o que devia com um dado que parecia vazio, e **todo**
+  chamado iria para revisão manual. Foi pego só porque o teste comparou a resposta do LLM
+  com a saída da validação, e não o status da execução.
+
+- **A janela de duplicidade.** Um teste com erro real deixou a página criada no Notion, sem
+  linha no log e sem label no e-mail. Com o workflow ativo, o ciclo seguinte criaria uma
+  segunda página: as duas barreiras originais dependiam do log ter sido gravado. Virou a
+  terceira barreira — buscar a página pelo *ID da mensagem* antes de criar — e o caso 5 de
+  teste.
+
+- **A falha que nunca seria tentada de novo.** O caminho de erro do Notion grava
+  `falha-notion` no log e não marca o e-mail, para ele voltar no próximo ciclo. Mas a checagem
+  de duplicidade contava qualquer linha do log: o e-mail voltaria, seria considerado
+  "já processado", e o chamado se perderia em silêncio. Achado ao desenhar a correção
+  anterior, antes de acontecer. A checagem passou a ignorar `falha-notion` e o log virou
+  upsert; os dois comportamentos foram provados numa transação desfeita com `ROLLBACK`.
+
+- **Headers do Gmail codificados.** O nó de normalização tinha fallbacks para
+  `$json.headers.subject`. A saída real mostrou que os headers vêm brutos, com o assunto
+  como `=?UTF-8?Q?Wi=2DFi_do_3=C2=BA_andar_caiu?=`. Se o campo `subject` faltasse, esse texto
+  iria parar no Notion. Os fallbacks saíram; ficaram só campos conferidos na saída real.
+
+- **Revisão manual sem os dados do chamado.** A primeira versão montava o item de revisão
+  manual aproveitando o que viesse. Funcionava no caminho de confiança baixa e quebrava no
+  caminho de erro do LLM, onde o `$json` contém só o objeto de erro. O nó passou a
+  reconstruir tudo a partir de `$('Normalizar campos do chamado')`.
+
+### Na plataforma
+
+- **`$env` bloqueado no n8n 2.** O desenho original lia IDs de variáveis de ambiente. O editor
+  mostrava só *not accessible via UI*; na execução daria *access to env vars denied*. Confirmado
+  lendo o código da versão 2.39.5 instalada. Os IDs, que não são segredo, foram para os nós.
+
+- **O teste que mentiu.** O caso 3 rodado com *Execute step* no último nó passou por todo o
+  fluxo com `ja_processado = 0`, como se o log estivesse vazio. Comparando os horários de
+  início com a execução anterior, 14 dos 15 nós tinham a saída reaproveitada do cache; só o
+  último rodou. Testes de cenário passaram a usar **Execute workflow**.
+
+- **Pin quebra o rastreio de itens.** Fixar a saída do nó do Notion, para não criar páginas
+  repetidas durante o teste, fez `$('Chamado triado').item` devolver `null` nos nós seguintes.
+  O `NOT NULL` da tabela recusou a linha vazia. Sem pin, todos os campos chegaram.
+
+- **Editor do n8n.** Campo em modo expressão não deixa escolher *From list* (é preciso clicar em
+  **Fixed** antes), e o erro de carregar as propriedades do Notion fica em cache até recarregar
+  a página, mesmo depois de corrigir o database.
+
+### No ambiente e nas integrações
+
+- **Docker Compose sem `--env-file`.** O comando de recriar o container, como estava na primeira
+  versão desta documentação, subiria o n8n com todas as variáveis vazias, inclusive a senha do
+  banco: o Compose procura o `.env` na pasta do `docker-compose.yml`, não na raiz. Pego antes
+  de rodar.
+
+- **Windows.** O redirecionamento `<` não existe no PowerShell (trocado por `docker cp` +
+  `psql -f`); o Docker Desktop instalado por usuário, fora do `Program Files`, some do PATH de
+  qualquer app aberto antes da instalação; e o Node derruba o processo com *Assertion failed*
+  quando o script chama `process.exit()` logo depois de um `fetch`.
+
+- **Google Cloud.** Publicar o app OAuth em produção — necessário para o acesso ao Gmail não
+  expirar em 7 dias — exige página inicial e política de privacidade; o repositório e o
+  `PRIVACY.md` cumprem o papel. A URI de retorno do n8n colada em *Origens JavaScript
+  autorizadas* é recusada: o lugar certo é *URIs de redirecionamento autorizados*.
+
+- **Notion.** A tela de integrações virou *Developer tools → Connections*, e a integração não
+  enxerga nenhuma página até ser conectada nela pelo menu `⋯`.
 
 ## Tratamento de erro
 
@@ -250,8 +312,11 @@ Gmail (OAuth2), OpenAI (API key), Notion (Internal Integration Token) e Postgres
 
 ## Como testar
 
-Importe `workflow.json` em **Workflows → Import from File**, ligue as quatro credenciais e
-mande um e-mail para você mesmo com a label `Chamados`.
+Importe `workflow.json` em **Workflows → Import from File**, ligue as credenciais, preencha os
+destinos (seção 4 acima) e mande um e-mail para você mesmo com a label `Chamados`.
+
+Rode cada caso com **Execute workflow**. O *Execute step* reaproveita a saída guardada dos nós
+anteriores e mostra o resultado de uma execução velha.
 
 **Caso 1 — classificação com alta confiança.** Deve cair em `Rede`, urgência Alta, e virar
 página automaticamente.
@@ -297,10 +362,24 @@ Payload que o LLM deve devolver:
 
 ## Resultado
 
-A preencher depois de rodar com volume real: número de chamados processados, percentual que
-passou direto e percentual que foi para revisão manual, e o tempo de triagem antes e depois.
+Resultado dos testes com e-mails reais, antes de volume de produção:
 
-A consulta de calibração:
+| Caso | Cenário | Resultado | Tempo |
+|---|---|---|---|
+| 1 | E-mail claro de rede | Página automática em `Rede`, urgência `Alta`, confiança 0.9 | ~4 s |
+| 2 | E-mail vago | IA sugeriu `Sistemas` com confiança 0.6; foi para `Revisão manual` | ~5 s |
+| 3 | E-mail já registrado volta sem label | Parou em *Ignorar duplicado*, sem chamar IA nem Notion | ~1 s |
+| 4 | IA indisponível | `Revisão manual` com o erro da OpenAI em *Triagem*; nada perdido | ~6 s |
+| 5 | Página criada, log perdido | Reaproveitou a página existente; nenhuma duplicata | ~4 s |
+
+- Uma classificação usou **~920 tokens** do `gpt-4o-mini` (867 de entrada, 50 de saída).
+- Com `temperature: 0`, o mesmo e-mail recebeu a mesma resposta, palavra por palavra, em
+  execuções diferentes.
+- Na triagem manual descrita em *O problema*, cada chamado toma de um a dois minutos de
+  leitura e cadastro. Aqui, o caminho completo leva de 4 a 6 segundos, sem ninguém tocar.
+
+Os números de produção — quantos chamados passam direto e quantos vão para revisão — saem
+desta consulta, depois de algumas semanas ativo:
 
 ```sql
 SELECT destino, count(*), round(avg(confianca), 2) AS confianca_media

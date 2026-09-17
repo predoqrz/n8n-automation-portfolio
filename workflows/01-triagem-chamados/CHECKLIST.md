@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 7 — testes concluídos; fechar o workflow (assets, README, ativação, merge)
+**Onde eu parei:** etapa 7 — README e export prontos; faltam assets, ativação e merge
 
 ---
 
@@ -153,12 +153,14 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
 
 - [ ] GIF do e-mail virando página, em `assets/`
 - [ ] Print do canvas com os dois caminhos, em `assets/`
-- [ ] Preencher no README: **Tempo de construção**, **Resultado**
-- [ ] Passar as anotações de construção do Obsidian para *O que não funcionou* —
+- [x] Preencher no README: **Tempo de construção**, **Resultado** (tempo é piso pelos commits; ajustar se quiser)
+- [x] Passar as anotações de construção para *O que não funcionou* — feito a partir da tabela
+      abaixo; conferir se o Obsidian tem algo que não está aqui —
       **tudo** que quebrou nas etapas 2, 4 e 5. É o conteúdo que o post 1 prometeu, e
       é a única seção que não dá para escrever depois, de memória
 - [ ] Status do README: 🚧 → ✅
-- [ ] Revisar o export: nenhum ID, e-mail ou token dentro de nó
+- [x] Revisar o export: nenhum ID, e-mail ou token dentro de nó — comparado com o workflow
+      testado no n8n: diferenças só em IDs (marcadores), padrões omitidos e ordem de chaves
 - [ ] Ativar o workflow (toggle **Active**)
 - [x] Push da branch — o link da política de privacidade no Google aponta para ela
 - [ ] Merge de `feat/01-triagem-chamados` na `main`

@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 5 — nós 1 a 4 testados; testando a classificação com LLM
+**Onde eu parei:** etapa 5 — LLM respondendo; corrigindo a leitura de `output` no nó Validar classificação
 
 ---
 
@@ -180,6 +180,7 @@ Registrado na hora, para a seção *O que não funcionou* do README.
 | 5 | Campo em modo expressão (`fx`) não deixa escolher *From list* | Opção cinza no seletor | Clicar em **Fixed** no título do campo antes de trocar o modo |
 | 5 | Propriedades do Notion continuam com *Error fetching options* depois de trocar o database | Erro guardado em cache pelo editor; os valores salvos estavam certos | Salvar e recarregar a página (F5) |
 | 5 | Fallback `$json.headers?.subject` no nó 2 | Os headers do Gmail vêm brutos: o assunto chega como `=?UTF-8?Q?Wi=2DFi_do_3=C2=BA_andar_caiu?=` | Removido; só campos conferidos na saída real (`subject`, `from.text`, `text`, `date`) |
+| 5 | Nó *Validar classificação* lia `$json.categoria`, mas o Basic LLM Chain entrega a resposta em `$json.output` | LLM respondeu `Rede / Alta / 0.9` e o nó transformou em `Revisão manual / Baixa / 0`. Sem erro nenhum: **todo** chamado iria para revisão manual em silêncio | `const llm = $json.output ?? $json`. Testado com a saída real e com quatro respostas inválidas |
 | 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |
 
 ## Onde isso provavelmente vai quebrar

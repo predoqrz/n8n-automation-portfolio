@@ -123,6 +123,15 @@ flowchart LR
   segredo, eles ficam no nó; o que é segredo continua nas credenciais. Bônus: com o database
   fixo, o editor volta a listar as propriedades do Notion.
 
+- **O que não funcionou — a falha silenciosa:** no primeiro teste real, o LLM classificou o
+  e-mail do Wi-Fi corretamente (`Rede`, `Alta`, confiança `0.9`), e o nó *Validar
+  classificação* transformou a resposta em `Revisão manual`, `Baixa`, confiança `0`. O código
+  lia `$json.categoria`, mas o Basic LLM Chain com output parser entrega tudo dentro de
+  `$json.output`. Nenhum nó deu erro: a validação fez exatamente o que devia com um dado que
+  parecia vazio, e **todo** chamado passaria a ir para revisão manual. A proteção evitou um
+  cartão na fila errada, mas escondeu o bug. Foi pego só porque o teste comparou a resposta
+  do LLM com a saída da validação, e não apenas o status verde da execução.
+
 - **O que não funcionou:** a primeira versão montava o item de revisão manual com
   `includeOtherFields: true`, aproveitando o que viesse. Funcionava no caminho de confiança
   baixa e quebrava no caminho de erro do LLM, onde o `$json` contém só o objeto de erro.

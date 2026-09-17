@@ -85,7 +85,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT count(*)::int AS ja_processado\n  FROM portfolio.log_triagem\n WHERE mensagem_id = $1;",
+        "query": "SELECT count(*)::int AS ja_processado\n  FROM portfolio.log_triagem\n WHERE mensagem_id = $1\n   AND destino <> 'falha-notion';",
         "options": {
           "queryReplacement": "={{ $json.mensagem_id }}"
         }
@@ -99,7 +99,7 @@
         0
       ],
       "alwaysOutputData": true,
-      "notes": "Segunda barreira de idempotência. A label do Gmail pode falhar; o banco é a fonte da verdade."
+      "notes": "Segunda barreira de idempotência. Conta só chamados que chegaram ao Notion: uma linha 'falha-notion' não pode bloquear a nova tentativa, senão o chamado se perde em silêncio."
     },
     {
       "parameters": {
@@ -467,8 +467,8 @@
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        880,
-        -40
+        1540,
+        -140
       ],
       "onError": "continueErrorOutput",
       "retryOnFail": true,
@@ -563,7 +563,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1100,
+        1760,
         -40
       ],
       "notes": "Os nomes dos campos batem exatamente com as colunas de portfolio.log_triagem — é o que permite usar 'Map Automatically' no nó Postgres."
@@ -588,19 +588,18 @@
           "value": {},
           "schema": []
         },
-        "options": {
-          "skipOnConflict": true
-        }
+        "options": {},
+        "operation": "upsert"
       },
       "id": "a1000000-0000-4000-8000-000000000016",
       "name": "Registrar triagem no Postgres",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1320,
+        1980,
         -40
       ],
-      "notes": "Gravado ANTES de marcar o e-mail. Se a label falhar, a próxima execução vê o registro aqui e não duplica a página."
+      "notes": "Upsert por mensagem_id (ON CONFLICT DO UPDATE): se uma tentativa anterior gravou 'falha-notion', a tentativa bem-sucedida atualiza a mesma linha. Gravado ANTES de marcar o e-mail."
     },
     {
       "parameters": {
@@ -615,7 +614,7 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        1540,
+        2200,
         -40
       ],
       "onError": "continueRegularOutput",
@@ -696,10 +695,125 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1100,
-        180
+        1760,
+        240
       ],
       "notes": "O e-mail NÃO é marcado como processado neste caminho. Sem página criada, ele precisa voltar na fila quando o Notion voltar."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/COLE_AQUI_O_ID_DO_DATABASE_CHAMADOS/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filter: { property: 'ID da mensagem', rich_text: { equals: $json.mensagem_id } }, page_size: 1 }) }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000019",
+      "name": "Buscar página pelo ID da mensagem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -40
+      ],
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Pergunta ao destino antes de escrever nele. HTTP Request e não o nó Notion 'Get Many': este devolve exatamente uma resposta por chamado, mesmo sem resultado. O Get Many com 'Always Output Data' só emite um item vazio quando TODOS vêm vazios, e perderia chamados num lote misto."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c03",
+              "leftValue": "={{ $json.results?.length ?? 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000020",
+      "name": "Página já existe?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        -40
+      ],
+      "notes": "true = uma execução anterior criou a página e caiu antes de gravar o log. Reaproveita em vez de duplicar."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// O nó HTTP substituiu o item pela resposta da busca. O nó do Notion lê\n// assunto, categoria etc. de $json, então os dados do chamado voltam aqui.\nreturn { json: $('Chamado triado').item.json };"
+      },
+      "id": "a1000000-0000-4000-8000-000000000021",
+      "name": "Retomar dados do chamado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f70",
+              "name": "id",
+              "type": "string",
+              "value": "={{ $json.results[0].id }}"
+            },
+            {
+              "id": "f71",
+              "name": "url",
+              "type": "string",
+              "value": "={{ $json.results[0].url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000022",
+      "name": "Reaproveitar página existente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        80
+      ],
+      "notes": "Entrega id e url com os mesmos nomes da saída do nó 'Criar página no Notion', para o log ser montado igual nos dois caminhos."
     }
   ],
   "connections": {
@@ -849,7 +963,7 @@
       "main": [
         [
           {
-            "node": "Criar página no Notion",
+            "node": "Buscar página pelo ID da mensagem",
             "type": "main",
             "index": 0
           }
@@ -901,6 +1015,64 @@
         [
           {
             "node": "Registrar triagem no Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar página pelo ID da mensagem": {
+      "main": [
+        [
+          {
+            "node": "Página já existe?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar falha do Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Página já existe?": {
+      "main": [
+        [
+          {
+            "node": "Reaproveitar página existente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retomar dados do chamado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retomar dados do chamado": {
+      "main": [
+        [
+          {
+            "node": "Criar página no Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reaproveitar página existente": {
+      "main": [
+        [
+          {
+            "node": "Montar registro de log",
             "type": "main",
             "index": 0
           }

@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 5 — primeira execução ponta a ponta com sucesso; falta fechar a janela de duplicidade antes dos quatro testes
+**Onde eu parei:** etapa 5 — opção B pronta no repositório; reimportar o workflow no n8n
 
 ---
 
@@ -115,9 +115,11 @@ A mais fácil, e destrava o teste do nó 3.
 - [x] Test step em *Registrar triagem no Postgres* e *Marcar e-mail como processado* — ponta a ponta:
       1 página no Notion, 1 linha no log com o mesmo `notion_page_id`, marcador aplicado no Gmail
 - [ ] **Desafixar (unpin) todos os nós antes de ativar o workflow**
-- [ ] **Antes de ativar:** fechar a janela de duplicidade entre criar a página e gravar o log
-      (reservar o `mensagem_id` no Postgres antes do Notion, ou procurar a página pelo
-      *ID da mensagem* antes de criar)
+- [x] Fechar a janela de duplicidade no repositório — opção B: buscar a página pelo *ID da
+      mensagem* antes de criar. Junto, a checagem ignora `falha-notion` e o log virou upsert
+- [ ] Reimportar o `workflow.json` atualizado, ligar as credenciais (7 nós) e preencher o ID do
+      database na URL da busca e no nó de criação; arquivar o workflow antigo
+- [ ] Rodar ponta a ponta de novo: deve seguir por *Reaproveitar página existente*
 
 > Um nó por vez, de cima para baixo. Rodar o fluxo inteiro e ver "erro" não diz onde.
 
@@ -132,6 +134,7 @@ Os e-mails prontos para copiar estão no [README](README.md), seção *Como test
 - [ ] **Caso 3** — tirar a label `Chamado processado` do e-mail do caso 1 → deve parar em
       `Ignorar duplicado`, **sem** criar segunda página
 - [ ] **Caso 4** — desligar a credencial OpenAI → `Revisão manual` com o erro no `Triagem`
+- [ ] **Caso 5** — apagar a linha do log e tirar a label → deve reaproveitar a página, sem duplicar
 - [ ] Conferir a tabela:
       `docker exec n8n-postgres psql -U n8n -d n8n -c "SELECT processado_em, categoria, urgencia, confianca, destino FROM portfolio.log_triagem ORDER BY processado_em DESC;"`
 
@@ -192,7 +195,8 @@ Registrado na hora, para a seção *O que não funcionou* do README.
 | 5 | Fallback `$json.headers?.subject` no nó 2 | Os headers do Gmail vêm brutos: o assunto chega como `=?UTF-8?Q?Wi=2DFi_do_3=C2=BA_andar_caiu?=` | Removido; só campos conferidos na saída real (`subject`, `from.text`, `text`, `date`) |
 | 5 | Nó *Validar classificação* lia `$json.categoria`, mas o Basic LLM Chain entrega a resposta em `$json.output` | LLM respondeu `Rede / Alta / 0.9` e o nó transformou em `Revisão manual / Baixa / 0`. Sem erro nenhum: **todo** chamado iria para revisão manual em silêncio | `const llm = $json.output ?? $json`. Testado com a saída real e com quatro respostas inválidas |
 | 5 | Saída do Notion fixada (pin) para não duplicar página no teste | *Montar registro de log* recebeu `null` em tudo que vinha de `$('Chamado triado').item`; o Postgres recusou com `Column 'mensagem_id' is not nullable` | O `NOT NULL` impediu um log sem identificação. Confirmado: sem pin, todos os campos chegaram |
-| 5 | Falha entre criar a página e gravar o log | Página no Notion, sem log e sem marcador: com o workflow ativo, o próximo ciclo criaria **uma segunda página** | Janela de duplicidade real, ainda aberta. Corrigir antes de ativar |
+| 5 | Falha entre criar a página e gravar o log | Página no Notion, sem log e sem marcador: com o workflow ativo, o próximo ciclo criaria **uma segunda página** | Corrigido com a opção B: busca no Notion pelo *ID da mensagem* antes de criar |
+| 5 | Checagem de duplicidade contava linhas `falha-notion` | Descoberto no desenho da opção B: um chamado que falhou no Notion nunca mais seria tentado, em silêncio | Checagem ignora `falha-notion`; log virou upsert. Provado numa transação com ROLLBACK |
 | 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |
 
 ## Onde isso provavelmente vai quebrar

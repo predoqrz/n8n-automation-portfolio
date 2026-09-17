@@ -38,9 +38,15 @@ flowchart LR
     E -.erro.-> I
     H --> J[Chamado triado]
     I --> J
-    J --> K[Criar página no Notion]
+    J --> P[Buscar página pelo ID da mensagem]
+    P --> Q{Página já existe?}
+    Q -->|sim| R[Reaproveitar página existente]
+    Q -->|não| S[Retomar dados do chamado]
+    S --> K[Criar página no Notion]
     K --> L[Montar registro de log]
-    K -.erro.-> M[Registrar falha do Notion]
+    R --> L
+    P -.erro.-> M[Registrar falha do Notion]
+    K -.erro.-> M
     L --> N[(Registrar no Postgres)]
     M --> N
     N --> O[Marcar e-mail como processado]
@@ -52,7 +58,7 @@ flowchart LR
 |----|----|------|-----------|
 | 1  | Gmail · novos chamados | Gmail Trigger | Busca a cada minuto por `label:chamados -label:chamado-processado`. O filtro negativo é a primeira barreira contra reprocessamento. |
 | 2  | Normalizar campos do chamado | Edit Fields (Set) | Reduz o e-mail a seis campos estáveis: `mensagem_id`, `thread_id`, `remetente`, `assunto`, `corpo`, `recebido_em`. Limpa HTML e corta o corpo em 1900 caracteres. |
-| 3  | Chamado já processado? | Postgres (Execute Query) | `SELECT count(*) FROM portfolio.log_triagem WHERE mensagem_id = $1`. |
+| 3  | Chamado já processado? | Postgres (Execute Query) | Conta linhas do log com esse `mensagem_id`, **ignorando** `destino = 'falha-notion'`. |
 | 4  | É chamado novo? | IF | Continua só se a contagem for zero. |
 | 5  | Ignorar duplicado | No Operation | Fim silencioso para e-mail já triado. |
 | 6  | Classificar chamado com LLM | Basic LLM Chain | Envia assunto + corpo e recebe JSON. Tem saída de erro ligada à revisão manual. |
@@ -63,11 +69,15 @@ flowchart LR
 | 9  | Marcar triagem automática | Edit Fields (Set) | Carimba `destino: notion` e o motivo. |
 | 10 | Encaminhar para revisão manual | Edit Fields (Set) | Recebe os dois caminhos de exceção e preenche `motivo` dizendo qual foi. |
 | 11 | Chamado triado | No Operation | Ponto de encontro dos dois caminhos. |
-| 12 | Criar página no Notion | Notion (Database Page → Create) | Cria a página no database de chamados. 3 tentativas, saída de erro ligada. |
-| 13 | Montar registro de log | Edit Fields (Set) | Monta a linha com os nomes exatos das colunas da tabela. |
-| 14 | Registrar triagem no Postgres | Postgres (Insert) | Grava em `portfolio.log_triagem`. |
-| 15 | Marcar e-mail como processado | Gmail | Aplica a label `chamado-processado`. |
-| 16 | Registrar falha do Notion | Edit Fields (Set) | Caminho de erro do Notion: registra `destino: falha-notion` e **não** marca o e-mail. |
+| 12 | Buscar página pelo ID da mensagem | HTTP Request (API do Notion) | Procura no database uma página com o mesmo *ID da mensagem*. Usa a credencial do Notion. 3 tentativas, saída de erro ligada. |
+| 13 | Página já existe? | IF | Se achou, uma execução anterior caiu entre criar a página e gravar o log. |
+| 14 | Reaproveitar página existente | Edit Fields (Set) | Entrega `id` e `url` da página encontrada, com os mesmos nomes da saída do nó 16. |
+| 15 | Retomar dados do chamado | Code | Devolve os dados de *Chamado triado*, que o nó HTTP tinha substituído pela resposta da busca. |
+| 16 | Criar página no Notion | Notion (Database Page → Create) | Cria a página no database de chamados. 3 tentativas, saída de erro ligada. |
+| 17 | Montar registro de log | Edit Fields (Set) | Monta a linha com os nomes exatos das colunas da tabela. Recebe dos dois caminhos. |
+| 18 | Registrar triagem no Postgres | Postgres (Upsert) | Grava em `portfolio.log_triagem`; se já houver linha de falha para o `mensagem_id`, atualiza. |
+| 19 | Marcar e-mail como processado | Gmail | Aplica a label `chamado-processado`. |
+| 20 | Registrar falha do Notion | Edit Fields (Set) | Caminho de erro da busca e da criação: registra `destino: falha-notion` e **não** marca o e-mail. |
 
 ## Decisões técnicas
 
@@ -101,10 +111,31 @@ flowchart LR
   para caber com folga no bloco de texto, e chamado que não se explica em 1900 caracteres
   é chamado que precisa de humano de qualquer jeito.
 
-- **Por que dois mecanismos de idempotência:** a label do Gmail sozinha tem uma janela de
-  falha — se a página é criada e a chamada de label falha, o próximo ciclo cria uma segunda
-  página. Por isso o log no Postgres é gravado **antes** da label, e `mensagem_id` tem
-  constraint `UNIQUE`. A label é conveniência; o banco é a garantia.
+- **Por que três barreiras de idempotência, e não duas:** o desenho original tinha duas — a
+  label do Gmail e o log no Postgres, gravado antes da label. Um teste com erro real mostrou
+  a janela que sobrava: a página foi criada no Notion, o log falhou, e o e-mail ficou sem
+  label. Com o workflow ativo, o ciclo seguinte criaria uma **segunda página**. A terceira
+  barreira pergunta ao destino antes de escrever nele: busca no Notion uma página com o mesmo
+  *ID da mensagem* e, se existir, reaproveita. A label é conveniência, o log é o registro, e o
+  destino é a última palavra sobre o que já existe.
+
+- **Por que reservar o `mensagem_id` no Postgres não foi a escolha:** gravar uma linha
+  `pendente` antes do Notion, protegida pelo `UNIQUE`, é a solução mais forte para várias
+  execuções em paralelo. Mas exige decidir o que fazer com linhas que ficaram pendentes depois
+  de uma falha, senão o chamado nunca é reprocessado. Com um único n8n lendo a caixa a cada
+  minuto, perguntar ao Notion fecha o problema observado com menos regras.
+
+- **Por que HTTP Request e não o nó Notion "Get Many" para a busca:** o Get Many não emite nada
+  quando não encontra página, e o "Always Output Data" só cria um item vazio quando **todos**
+  os itens vêm vazios. Num lote com dois e-mails, um já com página e outro novo, o novo
+  sumiria. O HTTP Request devolve exatamente uma resposta por chamado, com `results` vazio ou
+  não.
+
+- **Por que uma falha no Notion não pode contar como "já processado":** a primeira versão da
+  checagem contava qualquer linha do log. Uma linha `falha-notion` bloquearia para sempre a
+  nova tentativa, e o chamado se perderia em silêncio — o oposto do que o caminho de erro
+  promete. A checagem agora ignora essas linhas, e o log virou upsert: a tentativa que dá
+  certo sobrescreve a linha da falha.
 
 - **Por que `Revisão manual` é uma categoria e não um e-mail para o analista:** o chamado
   precisa ficar no mesmo lugar onde o time já trabalha, numa visão filtrada do mesmo
@@ -145,9 +176,10 @@ flowchart LR
 | API do LLM fora, timeout ou JSON irrecuperável | 2 tentativas; depois a saída de erro manda para revisão manual com `motivo` preenchido. O e-mail vira chamado do mesmo jeito. |
 | LLM devolve categoria fora do `enum` | O nó Code força `Revisão manual` e confiança 0. |
 | LLM devolve confiança ausente ou fora de 0–1 | Vira 0, portanto revisão manual. |
-| Notion fora do ar | 3 tentativas com 3s de espera; depois grava `destino: falha-notion` no log e **não** marca o e-mail — ele volta na próxima execução. |
+| Notion fora do ar (na busca ou na criação) | 3 tentativas com 3s de espera; depois grava `destino: falha-notion` no log e **não** marca o e-mail. A checagem ignora essa linha, então o e-mail é tentado de novo no próximo ciclo. |
+| Página criada, mas o log ou a label falham | No ciclo seguinte, a busca pelo *ID da mensagem* acha a página, o fluxo reaproveita e grava o log. Nenhuma página duplicada. |
 | Gmail falha ao aplicar a label | A execução continua (`continueRegularOutput`). O registro no Postgres já protege contra duplicata. |
-| Mesmo e-mail entra duas vezes | Bloqueado pela consulta de dedupe; se escapar, a constraint `UNIQUE (mensagem_id)` com `skipOnConflict` barra. |
+| Mesmo e-mail entra duas vezes | Bloqueado pela checagem no Postgres; se escapar, a busca no Notion reaproveita a página; e a constraint `UNIQUE (mensagem_id)` com upsert impede linha duplicada no log. |
 
 Pendente: apontar um Error Workflow global em **Settings → Error Workflow** para capturar
 falhas fora dos caminhos previstos.
@@ -203,6 +235,7 @@ O script `scripts/notion-database.mjs` cria esse database com nomes e tipos exat
 O `workflow.json` público traz marcadores `COLE_AQUI_...` no lugar dos IDs da conta. Depois
 de importar:
 
+- **Buscar página pelo ID da mensagem** → na *URL*, troque `COLE_AQUI_O_ID_DO_DATABASE_CHAMADOS` pelo ID do database
 - **Criar página no Notion** → *Database* → **From list** → `Chamados`
 - **Marcar e-mail como processado** → *Label Names or IDs* → `Chamado processado`
 
@@ -239,6 +272,11 @@ segunda página.
 
 **Caso 4 — falha do LLM.** Desligue a credencial da OpenAI e mande um e-mail. Deve virar
 chamado em `Revisão manual` com o `motivo` mostrando o erro.
+
+**Caso 5 — página criada, log perdido.** Depois do caso 1, apague a linha do log
+(`DELETE FROM portfolio.log_triagem WHERE mensagem_id = '...'`) e tire a label `Chamado
+processado` do e-mail. No ciclo seguinte, o fluxo deve seguir por *Reaproveitar página
+existente*, gravar o log de novo e **não** criar uma segunda página.
 
 Conferindo o resultado no banco:
 

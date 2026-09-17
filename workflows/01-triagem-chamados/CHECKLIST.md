@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 5 — nós configurados, primeiro teste com e-mail real
+**Onde eu parei:** etapa 5 — nó 1 testado; ajustando as expressões do nó 2
 
 ---
 
@@ -101,8 +101,8 @@ A mais fácil, e destrava o teste do nó 3.
 - [x] Ligar as quatro credenciais nos nós que pedirem
 - [x] No nó *Criar página no Notion*: Database → **From list** → `Chamados`
 - [x] No nó *Marcar e-mail como processado*: marcador `Chamado processado` na lista
-- [ ] Mandar um e-mail de teste para si mesmo e aplicar a label `Chamados`
-- [ ] Rodar **Test step** no nó 1 e **olhar a saída real**
+- [x] Mandar um e-mail de teste para si mesmo e aplicar a label `Chamados`
+- [x] Rodar **Test step** no nó 1 e **olhar a saída real**
 - [ ] Ajustar as expressões do nó 2 para os nomes de campo que apareceram de verdade
       (hoje tem fallback: `$json.subject || $json.Subject || ...`)
 - [ ] Test step nos nós 3 e 4
@@ -179,6 +179,7 @@ Registrado na hora, para a seção *O que não funcionou* do README.
 | 5 | `$env` bloqueado por padrão no n8n 2 (`N8N_BLOCK_ENV_ACCESS_IN_NODE`) | Editor mostra *not accessible via UI*; na execução daria *access to env vars denied*, e o nó do Notion não lista as propriedades | IDs do database e do marcador escolhidos direto nos nós; segredos continuam nas credenciais. Confirmado lendo o código do n8n 2.39.5 |
 | 5 | Campo em modo expressão (`fx`) não deixa escolher *From list* | Opção cinza no seletor | Clicar em **Fixed** no título do campo antes de trocar o modo |
 | 5 | Propriedades do Notion continuam com *Error fetching options* depois de trocar o database | Erro guardado em cache pelo editor; os valores salvos estavam certos | Salvar e recarregar a página (F5) |
+| 5 | Fallback `$json.headers?.subject` no nó 2 | Os headers do Gmail vêm brutos: o assunto chega como `=?UTF-8?Q?Wi=2DFi_do_3=C2=BA_andar_caiu?=` | Removido; só campos conferidos na saída real (`subject`, `from.text`, `text`, `date`) |
 | 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |
 
 ## Onde isso provavelmente vai quebrar

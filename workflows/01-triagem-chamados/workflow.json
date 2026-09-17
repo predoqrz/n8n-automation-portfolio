@@ -48,25 +48,25 @@
               "id": "f03",
               "name": "remetente",
               "type": "string",
-              "value": "={{ $json.from?.text || $json.From || $json.headers?.from || '' }}"
+              "value": "={{ ($json.from?.text || '').replace(/\"/g, '').trim() }}"
             },
             {
               "id": "f04",
               "name": "assunto",
               "type": "string",
-              "value": "={{ ($json.subject || $json.Subject || $json.headers?.subject || '(sem assunto)').trim() }}"
+              "value": "={{ ($json.subject || '(sem assunto)').trim() }}"
             },
             {
               "id": "f05",
               "name": "corpo",
               "type": "string",
-              "value": "={{ ($json.text || $json.snippet || '').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 1900) }}"
+              "value": "={{ ($json.text || ($json.html || '').replace(/<[^>]*>/g, ' ')).replace(/s+/g, ' ').trim().slice(0, 1900) }}"
             },
             {
               "id": "f06",
               "name": "recebido_em",
               "type": "string",
-              "value": "={{ new Date($json.date ?? Number($json.internalDate ?? Date.now())).toISOString() }}"
+              "value": "={{ new Date($json.date).toISOString() }}"
             }
           ]
         },
@@ -80,7 +80,7 @@
         -900,
         0
       ],
-      "notes": "Todo o resto do fluxo lê daqui. Corpo limpo de HTML e cortado em 1900 caracteres: é o teto de um bloco de texto do Notion (2000) com folga."
+      "notes": "Campos conferidos contra a saída real do Gmail Trigger (simple: false): id, threadId, subject, from.text, text, date. Não usar headers: vêm brutos, com o assunto codificado em MIME (=?UTF-8?Q?...?=). Corpo cai para o html sem tags quando o e-mail não tem parte em texto puro, e é cortado em 1900 caracteres, o teto de um bloco do Notion com folga."
     },
     {
       "parameters": {

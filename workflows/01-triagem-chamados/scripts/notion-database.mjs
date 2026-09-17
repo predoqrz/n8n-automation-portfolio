@@ -170,8 +170,8 @@ async function criar(env) {
   console.log(`    ${db.url}\n`);
   console.log('  Cole esta linha no .env:\n');
   console.log(`      NOTION_DATABASE_CHAMADOS=${id}\n`);
-  console.log('  Depois recrie o container para o n8n enxergar a variável:\n');
-  console.log('      docker compose -f infra/docker-compose.yml --env-file .env up -d --force-recreate n8n\n');
+  console.log('  No n8n, no nó "Criar página no Notion", escolha o database em');
+  console.log('  Database → From list → Chamados.\n');
 }
 
 async function conferir(env) {

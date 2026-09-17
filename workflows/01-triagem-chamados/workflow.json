@@ -3,7 +3,13 @@
   "nodes": [
     {
       "parameters": {
-        "pollTimes": { "item": [ { "mode": "everyMinute" } ] },
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
         "simple": false,
         "filters": {
           "q": "label:chamados -label:chamado-processado"
@@ -14,7 +20,10 @@
       "name": "Gmail · novos chamados",
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1.2,
-      "position": [-1120, 0],
+      "position": [
+        -1120,
+        0
+      ],
       "notes": "Busca por label em vez de ler a caixa inteira. O '-label:chamado-processado' é a primeira barreira contra reprocessar o mesmo e-mail."
     },
     {
@@ -23,12 +32,42 @@
         "includeOtherFields": false,
         "assignments": {
           "assignments": [
-            { "id": "f01", "name": "mensagem_id", "type": "string", "value": "={{ $json.id }}" },
-            { "id": "f02", "name": "thread_id", "type": "string", "value": "={{ $json.threadId }}" },
-            { "id": "f03", "name": "remetente", "type": "string", "value": "={{ $json.from?.text || $json.From || $json.headers?.from || '' }}" },
-            { "id": "f04", "name": "assunto", "type": "string", "value": "={{ ($json.subject || $json.Subject || $json.headers?.subject || '(sem assunto)').trim() }}" },
-            { "id": "f05", "name": "corpo", "type": "string", "value": "={{ ($json.text || $json.snippet || '').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 1900) }}" },
-            { "id": "f06", "name": "recebido_em", "type": "string", "value": "={{ new Date($json.date ?? Number($json.internalDate ?? Date.now())).toISOString() }}" }
+            {
+              "id": "f01",
+              "name": "mensagem_id",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "f02",
+              "name": "thread_id",
+              "type": "string",
+              "value": "={{ $json.threadId }}"
+            },
+            {
+              "id": "f03",
+              "name": "remetente",
+              "type": "string",
+              "value": "={{ $json.from?.text || $json.From || $json.headers?.from || '' }}"
+            },
+            {
+              "id": "f04",
+              "name": "assunto",
+              "type": "string",
+              "value": "={{ ($json.subject || $json.Subject || $json.headers?.subject || '(sem assunto)').trim() }}"
+            },
+            {
+              "id": "f05",
+              "name": "corpo",
+              "type": "string",
+              "value": "={{ ($json.text || $json.snippet || '').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 1900) }}"
+            },
+            {
+              "id": "f06",
+              "name": "recebido_em",
+              "type": "string",
+              "value": "={{ new Date($json.date ?? Number($json.internalDate ?? Date.now())).toISOString() }}"
+            }
           ]
         },
         "options": {}
@@ -37,7 +76,10 @@
       "name": "Normalizar campos do chamado",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [-900, 0],
+      "position": [
+        -900,
+        0
+      ],
       "notes": "Todo o resto do fluxo lê daqui. Corpo limpo de HTML e cortado em 1900 caracteres: é o teto de um bloco de texto do Notion (2000) com folga."
     },
     {
@@ -52,20 +94,31 @@
       "name": "Chamado já processado?",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
-      "position": [-680, 0],
+      "position": [
+        -680,
+        0
+      ],
       "alwaysOutputData": true,
       "notes": "Segunda barreira de idempotência. A label do Gmail pode falhar; o banco é a fonte da verdade."
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
           "conditions": [
             {
               "id": "c01",
               "leftValue": "={{ $json.ja_processado }}",
               "rightValue": 0,
-              "operator": { "type": "number", "operation": "equals" }
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
             }
           ],
           "combinator": "and"
@@ -77,7 +130,10 @@
       "name": "É chamado novo?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [-460, 0]
+      "position": [
+        -460,
+        0
+      ]
     },
     {
       "parameters": {},
@@ -85,7 +141,10 @@
       "name": "Ignorar duplicado",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [-240, 200],
+      "position": [
+        -240,
+        200
+      ],
       "notes": "Caminho silencioso de propósito: o e-mail já virou página numa execução anterior."
     },
     {
@@ -106,7 +165,10 @@
       "name": "Classificar chamado com LLM",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
-      "position": [-240, -40],
+      "position": [
+        -240,
+        -40
+      ],
       "onError": "continueErrorOutput",
       "retryOnFail": true,
       "maxTries": 2,
@@ -121,13 +183,18 @@
           "value": "gpt-4o-mini",
           "cachedResultName": "gpt-4o-mini"
         },
-        "options": { "temperature": 0 }
+        "options": {
+          "temperature": 0
+        }
       },
       "id": "a1000000-0000-4000-8000-000000000007",
       "name": "Modelo OpenAI",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
-      "position": [-280, 180],
+      "position": [
+        -280,
+        180
+      ],
       "notes": "temperature 0: classificação precisa ser reproduzível. O mesmo e-mail tem que cair na mesma categoria."
     },
     {
@@ -139,7 +206,10 @@
       "name": "Schema da classificação",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
-      "position": [-100, 180],
+      "position": [
+        -100,
+        180
+      ],
       "notes": "O enum é o que impede o LLM de inventar categoria nova. Sem isso, um dia ele devolve 'Infraestrutura' e o Notion cria uma opção Select órfã."
     },
     {
@@ -151,18 +221,29 @@
       "name": "Validar classificação",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-20, -40]
+      "position": [
+        -20,
+        -40
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
           "conditions": [
             {
               "id": "c02",
               "leftValue": "={{ $json.confianca }}",
               "rightValue": 0.7,
-              "operator": { "type": "number", "operation": "gte" }
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
             }
           ],
           "combinator": "and"
@@ -174,7 +255,10 @@
       "name": "Confiança suficiente?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [200, -40],
+      "position": [
+        200,
+        -40
+      ],
       "notes": "0,7 é um chute inicial deliberado. Depois de ~50 chamados reais, olhe a tabela de log e calibre."
     },
     {
@@ -183,8 +267,18 @@
         "includeOtherFields": true,
         "assignments": {
           "assignments": [
-            { "id": "f11", "name": "destino", "type": "string", "value": "notion" },
-            { "id": "f12", "name": "motivo", "type": "string", "value": "=Classificado automaticamente com confiança {{ Number($json.confianca).toFixed(2) }}." }
+            {
+              "id": "f11",
+              "name": "destino",
+              "type": "string",
+              "value": "notion"
+            },
+            {
+              "id": "f12",
+              "name": "motivo",
+              "type": "string",
+              "value": "=Classificado automaticamente com confiança {{ Number($json.confianca).toFixed(2) }}."
+            }
           ]
         },
         "options": {}
@@ -193,7 +287,10 @@
       "name": "Marcar triagem automática",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [420, -160],
+      "position": [
+        420,
+        -160
+      ],
       "notes": "Com o Notion não há ID de destino para resolver: a categoria é uma propriedade Select do mesmo database. Este nó só carimba a procedência do item."
     },
     {
@@ -202,17 +299,72 @@
         "includeOtherFields": false,
         "assignments": {
           "assignments": [
-            { "id": "f20", "name": "mensagem_id", "type": "string", "value": "={{ $('Normalizar campos do chamado').item.json.mensagem_id }}" },
-            { "id": "f21", "name": "thread_id", "type": "string", "value": "={{ $('Normalizar campos do chamado').item.json.thread_id }}" },
-            { "id": "f22", "name": "remetente", "type": "string", "value": "={{ $('Normalizar campos do chamado').item.json.remetente }}" },
-            { "id": "f23", "name": "assunto", "type": "string", "value": "={{ $('Normalizar campos do chamado').item.json.assunto }}" },
-            { "id": "f24", "name": "corpo", "type": "string", "value": "={{ $('Normalizar campos do chamado').item.json.corpo }}" },
-            { "id": "f25", "name": "recebido_em", "type": "string", "value": "={{ $('Normalizar campos do chamado').item.json.recebido_em }}" },
-            { "id": "f26", "name": "categoria", "type": "string", "value": "Revisão manual" },
-            { "id": "f27", "name": "urgencia", "type": "string", "value": "={{ $json.urgencia || 'Baixa' }}" },
-            { "id": "f28", "name": "resumo", "type": "string", "value": "={{ $json.resumo || $('Normalizar campos do chamado').item.json.assunto }}" },
-            { "id": "f29", "name": "confianca", "type": "number", "value": "={{ Number($json.confianca ?? 0) }}" },
-            { "id": "f30", "name": "destino", "type": "string", "value": "revisao-manual" },
+            {
+              "id": "f20",
+              "name": "mensagem_id",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.mensagem_id }}"
+            },
+            {
+              "id": "f21",
+              "name": "thread_id",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.thread_id }}"
+            },
+            {
+              "id": "f22",
+              "name": "remetente",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.remetente }}"
+            },
+            {
+              "id": "f23",
+              "name": "assunto",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.assunto }}"
+            },
+            {
+              "id": "f24",
+              "name": "corpo",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.corpo }}"
+            },
+            {
+              "id": "f25",
+              "name": "recebido_em",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.recebido_em }}"
+            },
+            {
+              "id": "f26",
+              "name": "categoria",
+              "type": "string",
+              "value": "Revisão manual"
+            },
+            {
+              "id": "f27",
+              "name": "urgencia",
+              "type": "string",
+              "value": "={{ $json.urgencia || 'Baixa' }}"
+            },
+            {
+              "id": "f28",
+              "name": "resumo",
+              "type": "string",
+              "value": "={{ $json.resumo || $('Normalizar campos do chamado').item.json.assunto }}"
+            },
+            {
+              "id": "f29",
+              "name": "confianca",
+              "type": "number",
+              "value": "={{ Number($json.confianca ?? 0) }}"
+            },
+            {
+              "id": "f30",
+              "name": "destino",
+              "type": "string",
+              "value": "revisao-manual"
+            },
             {
               "id": "f32",
               "name": "motivo",
@@ -227,7 +379,10 @@
       "name": "Encaminhar para revisão manual",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [420, 80],
+      "position": [
+        420,
+        80
+      ],
       "notes": "Duas entradas: confiança baixa e falha do LLM. Por isso monta tudo a partir do nó Normalizar, e não do $json — no caminho de erro o $json só tem o erro."
     },
     {
@@ -236,31 +391,73 @@
       "name": "Chamado triado",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [660, -40],
+      "position": [
+        660,
+        -40
+      ],
       "notes": "Ponto de encontro dos dois caminhos. Daqui para frente o tratamento é idêntico, e os nós seguintes têm um único nó para referenciar."
     },
     {
       "parameters": {
         "resource": "databasePage",
-        "databaseId": { "__rl": true, "mode": "id", "value": "={{ $env.NOTION_DATABASE_CHAMADOS }}" },
+        "databaseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "COLE_AQUI_O_ID_DO_DATABASE_CHAMADOS"
+        },
         "title": "=[{{ $json.urgencia }}] {{ $json.assunto }}",
         "propertiesUi": {
           "propertyValues": [
-            { "key": "Categoria|select", "selectValue": "={{ $json.categoria }}" },
-            { "key": "Urgência|select", "selectValue": "={{ $json.urgencia }}" },
-            { "key": "Status|select", "selectValue": "Novo" },
-            { "key": "Confiança|number", "numberValue": "={{ Number($json.confianca) }}" },
-            { "key": "Remetente|rich_text", "textContent": "={{ $json.remetente }}" },
-            { "key": "Recebido em|date", "includeTime": true, "range": false, "date": "={{ $json.recebido_em }}" },
-            { "key": "Resumo|rich_text", "textContent": "={{ $json.resumo }}" },
-            { "key": "Triagem|rich_text", "textContent": "={{ $json.motivo }}" },
-            { "key": "ID da mensagem|rich_text", "textContent": "={{ $json.mensagem_id }}" }
+            {
+              "key": "Categoria|select",
+              "selectValue": "={{ $json.categoria }}"
+            },
+            {
+              "key": "Urgência|select",
+              "selectValue": "={{ $json.urgencia }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "Novo"
+            },
+            {
+              "key": "Confiança|number",
+              "numberValue": "={{ Number($json.confianca) }}"
+            },
+            {
+              "key": "Remetente|rich_text",
+              "textContent": "={{ $json.remetente }}"
+            },
+            {
+              "key": "Recebido em|date",
+              "includeTime": true,
+              "range": false,
+              "date": "={{ $json.recebido_em }}"
+            },
+            {
+              "key": "Resumo|rich_text",
+              "textContent": "={{ $json.resumo }}"
+            },
+            {
+              "key": "Triagem|rich_text",
+              "textContent": "={{ $json.motivo }}"
+            },
+            {
+              "key": "ID da mensagem|rich_text",
+              "textContent": "={{ $json.mensagem_id }}"
+            }
           ]
         },
         "blockUi": {
           "blockValues": [
-            { "type": "heading_2", "textContent": "Mensagem original" },
-            { "type": "paragraph", "textContent": "={{ $json.corpo }}" }
+            {
+              "type": "heading_2",
+              "textContent": "Mensagem original"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ $json.corpo }}"
+            }
           ]
         },
         "options": {}
@@ -269,12 +466,15 @@
       "name": "Criar página no Notion",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
-      "position": [880, -40],
+      "position": [
+        880,
+        -40
+      ],
       "onError": "continueErrorOutput",
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000,
-      "notes": "A propriedade 'ID da mensagem' é o que permite rastrear da página de volta ao e-mail. O corpo vai no conteúdo da página, não em propriedade."
+      "notes": "Database fixo no nó, não em $env: o n8n 2 bloqueia $env por padrão, e o ID não é segredo. Depois de importar, troque 'By ID' por 'From list' e escolha Chamados — assim o editor também carrega as propriedades. A propriedade 'ID da mensagem' permite rastrear da página de volta ao e-mail."
     },
     {
       "parameters": {
@@ -282,18 +482,78 @@
         "includeOtherFields": false,
         "assignments": {
           "assignments": [
-            { "id": "f40", "name": "mensagem_id", "type": "string", "value": "={{ $('Chamado triado').item.json.mensagem_id }}" },
-            { "id": "f41", "name": "thread_id", "type": "string", "value": "={{ $('Chamado triado').item.json.thread_id }}" },
-            { "id": "f42", "name": "remetente", "type": "string", "value": "={{ $('Chamado triado').item.json.remetente }}" },
-            { "id": "f43", "name": "assunto", "type": "string", "value": "={{ $('Chamado triado').item.json.assunto }}" },
-            { "id": "f44", "name": "categoria", "type": "string", "value": "={{ $('Chamado triado').item.json.categoria }}" },
-            { "id": "f45", "name": "urgencia", "type": "string", "value": "={{ $('Chamado triado').item.json.urgencia }}" },
-            { "id": "f46", "name": "resumo", "type": "string", "value": "={{ $('Chamado triado').item.json.resumo }}" },
-            { "id": "f47", "name": "confianca", "type": "number", "value": "={{ Number($('Chamado triado').item.json.confianca) }}" },
-            { "id": "f48", "name": "destino", "type": "string", "value": "={{ $('Chamado triado').item.json.destino }}" },
-            { "id": "f49", "name": "motivo", "type": "string", "value": "={{ $('Chamado triado').item.json.motivo }}" },
-            { "id": "f50", "name": "notion_page_id", "type": "string", "value": "={{ $json.id }}" },
-            { "id": "f51", "name": "notion_page_url", "type": "string", "value": "={{ $json.url }}" }
+            {
+              "id": "f40",
+              "name": "mensagem_id",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.mensagem_id }}"
+            },
+            {
+              "id": "f41",
+              "name": "thread_id",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.thread_id }}"
+            },
+            {
+              "id": "f42",
+              "name": "remetente",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.remetente }}"
+            },
+            {
+              "id": "f43",
+              "name": "assunto",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.assunto }}"
+            },
+            {
+              "id": "f44",
+              "name": "categoria",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.categoria }}"
+            },
+            {
+              "id": "f45",
+              "name": "urgencia",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.urgencia }}"
+            },
+            {
+              "id": "f46",
+              "name": "resumo",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.resumo }}"
+            },
+            {
+              "id": "f47",
+              "name": "confianca",
+              "type": "number",
+              "value": "={{ Number($('Chamado triado').item.json.confianca) }}"
+            },
+            {
+              "id": "f48",
+              "name": "destino",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.destino }}"
+            },
+            {
+              "id": "f49",
+              "name": "motivo",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.motivo }}"
+            },
+            {
+              "id": "f50",
+              "name": "notion_page_id",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "f51",
+              "name": "notion_page_url",
+              "type": "string",
+              "value": "={{ $json.url }}"
+            }
           ]
         },
         "options": {}
@@ -302,16 +562,29 @@
       "name": "Montar registro de log",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1100, -40],
+      "position": [
+        1100,
+        -40
+      ],
       "notes": "Os nomes dos campos batem exatamente com as colunas de portfolio.log_triagem — é o que permite usar 'Map Automatically' no nó Postgres."
     },
     {
       "parameters": {
-        "schema": { "__rl": true, "mode": "name", "value": "portfolio" },
-        "table": { "__rl": true, "mode": "name", "value": "log_triagem" },
+        "schema": {
+          "__rl": true,
+          "mode": "name",
+          "value": "portfolio"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "name",
+          "value": "log_triagem"
+        },
         "columns": {
           "mappingMode": "autoMapInputData",
-          "matchingColumns": ["mensagem_id"],
+          "matchingColumns": [
+            "mensagem_id"
+          ],
           "value": {},
           "schema": []
         },
@@ -323,22 +596,30 @@
       "name": "Registrar triagem no Postgres",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
-      "position": [1320, -40],
+      "position": [
+        1320,
+        -40
+      ],
       "notes": "Gravado ANTES de marcar o e-mail. Se a label falhar, a próxima execução vê o registro aqui e não duplica a página."
     },
     {
       "parameters": {
         "operation": "addLabels",
         "messageId": "={{ $('Chamado triado').item.json.mensagem_id }}",
-        "labelIds": "={{ [$env.GMAIL_LABEL_PROCESSADO] }}"
+        "labelIds": [
+          "COLE_AQUI_O_ID_DO_MARCADOR_CHAMADO_PROCESSADO"
+        ]
       },
       "id": "a1000000-0000-4000-8000-000000000017",
       "name": "Marcar e-mail como processado",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [1540, -40],
+      "position": [
+        1540,
+        -40
+      ],
       "onError": "continueRegularOutput",
-      "notes": "continueRegularOutput: falhar aqui não pode derrubar a execução — a página já existe e o log já foi gravado."
+      "notes": "Marcador escolhido na lista do próprio nó, não via $env. continueRegularOutput: falhar aqui não pode derrubar a execução — a página já existe e o log já foi gravado."
     },
     {
       "parameters": {
@@ -346,16 +627,66 @@
         "includeOtherFields": false,
         "assignments": {
           "assignments": [
-            { "id": "f60", "name": "mensagem_id", "type": "string", "value": "={{ $('Chamado triado').item.json.mensagem_id }}" },
-            { "id": "f61", "name": "thread_id", "type": "string", "value": "={{ $('Chamado triado').item.json.thread_id }}" },
-            { "id": "f62", "name": "remetente", "type": "string", "value": "={{ $('Chamado triado').item.json.remetente }}" },
-            { "id": "f63", "name": "assunto", "type": "string", "value": "={{ $('Chamado triado').item.json.assunto }}" },
-            { "id": "f64", "name": "categoria", "type": "string", "value": "={{ $('Chamado triado').item.json.categoria }}" },
-            { "id": "f65", "name": "urgencia", "type": "string", "value": "={{ $('Chamado triado').item.json.urgencia }}" },
-            { "id": "f66", "name": "resumo", "type": "string", "value": "={{ $('Chamado triado').item.json.resumo }}" },
-            { "id": "f67", "name": "confianca", "type": "number", "value": "={{ Number($('Chamado triado').item.json.confianca) }}" },
-            { "id": "f68", "name": "destino", "type": "string", "value": "falha-notion" },
-            { "id": "f69", "name": "motivo", "type": "string", "value": "=Notion indisponível após 3 tentativas: {{ $json.error?.message || $json.error || 'erro desconhecido' }}" }
+            {
+              "id": "f60",
+              "name": "mensagem_id",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.mensagem_id }}"
+            },
+            {
+              "id": "f61",
+              "name": "thread_id",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.thread_id }}"
+            },
+            {
+              "id": "f62",
+              "name": "remetente",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.remetente }}"
+            },
+            {
+              "id": "f63",
+              "name": "assunto",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.assunto }}"
+            },
+            {
+              "id": "f64",
+              "name": "categoria",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.categoria }}"
+            },
+            {
+              "id": "f65",
+              "name": "urgencia",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.urgencia }}"
+            },
+            {
+              "id": "f66",
+              "name": "resumo",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.resumo }}"
+            },
+            {
+              "id": "f67",
+              "name": "confianca",
+              "type": "number",
+              "value": "={{ Number($('Chamado triado').item.json.confianca) }}"
+            },
+            {
+              "id": "f68",
+              "name": "destino",
+              "type": "string",
+              "value": "falha-notion"
+            },
+            {
+              "id": "f69",
+              "name": "motivo",
+              "type": "string",
+              "value": "=Notion indisponível após 3 tentativas: {{ $json.error?.message || $json.error || 'erro desconhecido' }}"
+            }
           ]
         },
         "options": {}
@@ -364,70 +695,217 @@
       "name": "Registrar falha do Notion",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1100, 180],
+      "position": [
+        1100,
+        180
+      ],
       "notes": "O e-mail NÃO é marcado como processado neste caminho. Sem página criada, ele precisa voltar na fila quando o Notion voltar."
     }
   ],
   "connections": {
     "Gmail · novos chamados": {
-      "main": [[{ "node": "Normalizar campos do chamado", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Normalizar campos do chamado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Normalizar campos do chamado": {
-      "main": [[{ "node": "Chamado já processado?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Chamado já processado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Chamado já processado?": {
-      "main": [[{ "node": "É chamado novo?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "É chamado novo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "É chamado novo?": {
       "main": [
-        [{ "node": "Classificar chamado com LLM", "type": "main", "index": 0 }],
-        [{ "node": "Ignorar duplicado", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Classificar chamado com LLM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignorar duplicado",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Classificar chamado com LLM": {
       "main": [
-        [{ "node": "Validar classificação", "type": "main", "index": 0 }],
-        [{ "node": "Encaminhar para revisão manual", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Validar classificação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Encaminhar para revisão manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Modelo OpenAI": {
-      "ai_languageModel": [[{ "node": "Classificar chamado com LLM", "type": "ai_languageModel", "index": 0 }]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classificar chamado com LLM",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Schema da classificação": {
-      "ai_outputParser": [[{ "node": "Classificar chamado com LLM", "type": "ai_outputParser", "index": 0 }]]
+      "ai_outputParser": [
+        [
+          {
+            "node": "Classificar chamado com LLM",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Validar classificação": {
-      "main": [[{ "node": "Confiança suficiente?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Confiança suficiente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Confiança suficiente?": {
       "main": [
-        [{ "node": "Marcar triagem automática", "type": "main", "index": 0 }],
-        [{ "node": "Encaminhar para revisão manual", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Marcar triagem automática",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Encaminhar para revisão manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Marcar triagem automática": {
-      "main": [[{ "node": "Chamado triado", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Chamado triado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Encaminhar para revisão manual": {
-      "main": [[{ "node": "Chamado triado", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Chamado triado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Chamado triado": {
-      "main": [[{ "node": "Criar página no Notion", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Criar página no Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Criar página no Notion": {
       "main": [
-        [{ "node": "Montar registro de log", "type": "main", "index": 0 }],
-        [{ "node": "Registrar falha do Notion", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Montar registro de log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar falha do Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Montar registro de log": {
-      "main": [[{ "node": "Registrar triagem no Postgres", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Registrar triagem no Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Registrar triagem no Postgres": {
-      "main": [[{ "node": "Marcar e-mail como processado", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Marcar e-mail como processado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Registrar falha do Notion": {
-      "main": [[{ "node": "Registrar triagem no Postgres", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Registrar triagem no Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {

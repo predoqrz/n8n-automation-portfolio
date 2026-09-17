@@ -114,6 +114,15 @@ flowchart LR
   na tabela de log existe justamente para calibrar esse número depois de uns 50 chamados
   reais, comparando o que o LLM achou com o que o analista de fato fez.
 
+- **Por que os IDs estão no nó e não em variável de ambiente:** o desenho original lia o ID do
+  database e o do marcador com `$env`, para não deixar nada específico da conta dentro do nó.
+  No n8n 2 isso quebra: o acesso a `$env` é bloqueado por padrão
+  (`N8N_BLOCK_ENV_ACCESS_IN_NODE`), e o editor só mostra *not accessible via UI*, o que
+  esconde o problema até a execução. Liberar o bloqueio deixaria qualquer expressão ler a
+  senha do banco e a chave que criptografa as credenciais. Como nenhum dos dois IDs é
+  segredo, eles ficam no nó; o que é segredo continua nas credenciais. Bônus: com o database
+  fixo, o editor volta a listar as propriedades do Notion.
+
 - **O que não funcionou:** a primeira versão montava o item de revisão manual com
   `includeOtherFields: true`, aproveitando o que viesse. Funcionava no caminho de confiança
   baixa e quebrava no caminho de erro do LLM, onde o `$json` contém só o objeto de erro.
@@ -153,8 +162,8 @@ docker exec n8n-postgres psql -U n8n -d n8n -f /tmp/001-log-triagem.sql
 ### 2. Labels no Gmail
 
 Crie duas labels: `Chamados` (filtro que joga os e-mails de suporte para lá) e
-`Chamado processado`. O ID da segunda vai para o `.env` — ele aparece ao rodar um nó Gmail
-com a operação **Label → Get Many**.
+`Chamado processado`. Depois de importar o workflow, o nó *Marcar e-mail como processado*
+deixa escolher a segunda na lista, sem precisar do ID.
 
 ### 3. Database no Notion
 
@@ -177,15 +186,16 @@ acentos incluídos, porque o nó referencia cada uma por nome:
 Crie também uma visão **Revisão manual**, filtrando `Categoria = Revisão manual` — é a fila
 que uma pessoa olha.
 
-O ID do database são os 32 caracteres da URL, entre a barra e o `?v=`.
+O script `scripts/notion-database.mjs` cria esse database com nomes e tipos exatos, e o modo
+`--conferir` valida um database existente.
 
-### 4. Variáveis de ambiente
+### 4. Escolher os destinos nos nós
 
-Preencha no `.env` (veja `.env.example`) e recrie o container para que o n8n enxergue:
+O `workflow.json` público traz marcadores `COLE_AQUI_...` no lugar dos IDs da conta. Depois
+de importar:
 
-```bash
-docker compose -f infra/docker-compose.yml --env-file .env up -d --force-recreate n8n
-```
+- **Criar página no Notion** → *Database* → **From list** → `Chamados`
+- **Marcar e-mail como processado** → *Label Names or IDs* → `Chamado processado`
 
 ### 5. Credenciais no n8n
 

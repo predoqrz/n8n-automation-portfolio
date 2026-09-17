@@ -46,12 +46,6 @@ services:
       N8N_DIAGNOSTICS_ENABLED: "false"
       EXECUTIONS_DATA_PRUNE: "true"
       EXECUTIONS_DATA_MAX_AGE: 168
-
-      # Workflow 01 — triagem de chamados.
-      # Não são segredos, mas são IDs específicos da sua conta: ficam aqui e
-      # são lidos nos nós com {{$env.NOME}}, nunca digitados dentro do nó.
-      GMAIL_LABEL_PROCESSADO: ${GMAIL_LABEL_PROCESSADO}
-      NOTION_DATABASE_CHAMADOS: ${NOTION_DATABASE_CHAMADOS}
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files

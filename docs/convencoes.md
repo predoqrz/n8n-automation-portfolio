@@ -24,11 +24,17 @@ Antes de commitar, revise e substitua:
 |---|---|
 | URL interna real | `https://api.exemplo.com` |
 | E-mail corporativo | `usuario@exemplo.com` |
-| Token ou chave escrita direto no nó | mover para variável de ambiente |
+| Token ou chave escrita direto no nó | mover para uma credencial do n8n |
+| ID de database, lista ou marcador da sua conta | `COLE_AQUI_O_ID_DE_...` |
 | Nome de cliente ou empresa | nome genérico |
 
-Nunca escreva segredo direto no nó. Use `{{$env.NOME_DA_VARIAVEL}}` e documente a
-variável no `.env.example`.
+Nunca escreva segredo direto no nó. Segredo (token, senha, chave de API) mora numa
+**credencial do n8n**, que fica criptografada.
+
+Não conte com `{{$env.NOME}}` dentro dos nós: no n8n 2 esse acesso é bloqueado por padrão
+(`N8N_BLOCK_ENV_ACCESS_IN_NODE`), por segurança. Identificadores que não são segredo, como o
+ID de um database ou de um marcador, podem ficar no nó — e são trocados por um marcador
+`COLE_AQUI_...` no export que vai para o repositório.
 
 ## Nomenclatura dos nós
 

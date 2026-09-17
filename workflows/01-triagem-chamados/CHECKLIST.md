@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 6 — casos 1 e 5 passaram; faltam os casos 2, 3 e 4
+**Onde eu parei:** etapa 6 — casos 1, 3 e 5 passaram; faltam os casos 2 e 4
 
 ---
 
@@ -131,8 +131,8 @@ Os e-mails prontos para copiar estão no [README](README.md), seção *Como test
 
 - [x] **Caso 1** — e-mail claro de rede → página em `Rede`, urgência Alta, automático (execução 11)
 - [ ] **Caso 2** — e-mail vago → página em `Revisão manual`
-- [ ] **Caso 3** — tirar a label `Chamado processado` do e-mail do caso 1 → deve parar em
-      `Ignorar duplicado`, **sem** criar segunda página
+- [x] **Caso 3** — tirar a label `Chamado processado` do e-mail do caso 1 → parou em
+      `Ignorar duplicado` com `ja_processado = 1`, sem IA, sem busca e sem segunda página (execução 14)
 - [ ] **Caso 4** — desligar a credencial OpenAI → `Revisão manual` com o erro no `Triagem`
 - [x] **Caso 5** — apagar a linha do log e tirar a label → reaproveitou a página, sem duplicar (execução 12)
 - [ ] Conferir a tabela:

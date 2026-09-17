@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 4 — labels criadas, começando o Google Cloud
+**Onde eu parei:** etapa 4 — Branding aceito, publicando o app e indo para a credencial no n8n
 
 ---
 
@@ -77,9 +77,11 @@ A mais fácil, e destrava o teste do nó 3.
 
 - [x] Criar as labels `Chamados` e `Chamado processado`
 - [ ] Criar um filtro no Gmail jogando os e-mails de suporte para `Chamados` (depois dos testes; nos testes a label é aplicada à mão)
-- [ ] Google Cloud Console → novo projeto → habilitar a **Gmail API**
-- [ ] OAuth consent screen → External → adicionar seu e-mail como usuário de teste
+- [x] Google Cloud Console → novo projeto → habilitar a **Gmail API**
+- [x] OAuth consent screen → External → adicionar seu e-mail como usuário de teste
 - [ ] **Publicar o app em `In production`** e aceitar o aviso de app não verificado
+      (o Google exigiu página inicial e política de privacidade no Branding; usados o
+      repositório e `PRIVACY.md`)
 - [ ] Criar credencial OAuth 2.0 tipo *Web application*
 - [ ] Colar em *Authorized redirect URIs* a URL que o n8n mostra na tela da credencial
 - [ ] Conectar a credencial Gmail no n8n
@@ -136,7 +138,10 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
 - [ ] Status do README: 🚧 → ✅
 - [ ] Revisar o export: nenhum ID, e-mail ou token dentro de nó
 - [ ] Ativar o workflow (toggle **Active**)
+- [ ] Push da branch — o link da política de privacidade no Google aponta para ela e
+      hoje dá 404
 - [ ] Merge de `feat/01-triagem-chamados` na `main`
+- [ ] Trocar o link da política no Branding do Google para `blob/main/PRIVACY.md`
 
 ---
 

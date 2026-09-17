@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 4 — credencial Gmail conectada, falta o ID do marcador Chamado processado
+**Onde eu parei:** etapa 5 — importar o workflow e testar nó a nó
 
 ---
 
@@ -73,7 +73,7 @@ A mais fácil, e destrava o teste do nó 3.
 
 ---
 
-## Etapa 4 — Gmail (45 min a 2h, é a chata)
+## Etapa 4 — Gmail ✅ (falta só o filtro automático, depois dos testes)
 
 - [x] Criar as labels `Chamados` e `Chamado processado`
 - [ ] Criar um filtro no Gmail jogando os e-mails de suporte para `Chamados` (depois dos testes; nos testes a label é aplicada à mão)
@@ -85,9 +85,9 @@ A mais fácil, e destrava o teste do nó 3.
 - [x] Criar credencial OAuth 2.0 tipo *Web application*
 - [x] Colar em *Authorized redirect URIs* a URL que o n8n mostra na tela da credencial
 - [x] Conectar a credencial Gmail no n8n
-- [ ] Descobrir o ID da label: nó Gmail → **Label → Get Many** → executar → copiar o ID de
+- [x] Descobrir o ID da label: nó Gmail → **Label → Get Many** → executar → copiar o ID de
       `Chamado processado`
-- [ ] Preencher `GMAIL_LABEL_PROCESSADO` no `.env` e recriar o container
+- [x] Preencher `GMAIL_LABEL_PROCESSADO` no `.env` e recriar o container
 
 > **Não pule o "In production".** Em modo *Testing*, o Google emite refresh token que
 > **expira em 7 dias**. O fluxo funciona hoje, você posta, e na semana seguinte ele para

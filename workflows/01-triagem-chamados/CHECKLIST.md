@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 5 — nó 1 testado; ajustando as expressões do nó 2
+**Onde eu parei:** etapa 5 — nós 1 e 2 testados com e-mail real; testando os nós 3 e 4
 
 ---
 
@@ -103,7 +103,7 @@ A mais fácil, e destrava o teste do nó 3.
 - [x] No nó *Marcar e-mail como processado*: marcador `Chamado processado` na lista
 - [x] Mandar um e-mail de teste para si mesmo e aplicar a label `Chamados`
 - [x] Rodar **Test step** no nó 1 e **olhar a saída real**
-- [ ] Ajustar as expressões do nó 2 para os nomes de campo que apareceram de verdade
+- [x] Ajustar as expressões do nó 2 para os nomes de campo que apareceram de verdade
       (hoje tem fallback: `$json.subject || $json.Subject || ...`)
 - [ ] Test step nos nós 3 e 4
 - [ ] Test step no nó 6 — conferir o JSON que o LLM devolveu

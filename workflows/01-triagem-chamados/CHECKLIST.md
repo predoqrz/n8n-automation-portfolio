@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 4 — Gmail
+**Onde eu parei:** etapa 4 — labels criadas, começando o Google Cloud
 
 ---
 
@@ -75,8 +75,8 @@ A mais fácil, e destrava o teste do nó 3.
 
 ## Etapa 4 — Gmail (45 min a 2h, é a chata)
 
-- [ ] Criar as labels `Chamados` e `Chamado processado`
-- [ ] Criar um filtro no Gmail jogando os e-mails de suporte para `Chamados`
+- [x] Criar as labels `Chamados` e `Chamado processado`
+- [ ] Criar um filtro no Gmail jogando os e-mails de suporte para `Chamados` (depois dos testes; nos testes a label é aplicada à mão)
 - [ ] Google Cloud Console → novo projeto → habilitar a **Gmail API**
 - [ ] OAuth consent screen → External → adicionar seu e-mail como usuário de teste
 - [ ] **Publicar o app em `In production`** e aceitar o aviso de app não verificado

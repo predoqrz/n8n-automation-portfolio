@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 5 — opção B pronta no repositório; reimportar o workflow no n8n
+**Onde eu parei:** etapa 6 — casos 1 e 5 passaram; faltam os casos 2, 3 e 4
 
 ---
 
@@ -117,9 +117,9 @@ A mais fácil, e destrava o teste do nó 3.
 - [ ] **Desafixar (unpin) todos os nós antes de ativar o workflow**
 - [x] Fechar a janela de duplicidade no repositório — opção B: buscar a página pelo *ID da
       mensagem* antes de criar. Junto, a checagem ignora `falha-notion` e o log virou upsert
-- [ ] Reimportar o `workflow.json` atualizado, ligar as credenciais (7 nós) e preencher o ID do
+- [x] Reimportar o `workflow.json` atualizado, ligar as credenciais (7 nós) e preencher o ID do
       database na URL da busca e no nó de criação; arquivar o workflow antigo
-- [ ] Rodar ponta a ponta de novo: deve seguir por *Reaproveitar página existente*
+- [x] Rodar ponta a ponta de novo: seguiu por *Reaproveitar página existente*
 
 > Um nó por vez, de cima para baixo. Rodar o fluxo inteiro e ver "erro" não diz onde.
 
@@ -129,12 +129,12 @@ A mais fácil, e destrava o teste do nó 3.
 
 Os e-mails prontos para copiar estão no [README](README.md), seção *Como testar*.
 
-- [ ] **Caso 1** — e-mail claro de rede → página em `Rede`, urgência Alta, automático
+- [x] **Caso 1** — e-mail claro de rede → página em `Rede`, urgência Alta, automático (execução 11)
 - [ ] **Caso 2** — e-mail vago → página em `Revisão manual`
 - [ ] **Caso 3** — tirar a label `Chamado processado` do e-mail do caso 1 → deve parar em
       `Ignorar duplicado`, **sem** criar segunda página
 - [ ] **Caso 4** — desligar a credencial OpenAI → `Revisão manual` com o erro no `Triagem`
-- [ ] **Caso 5** — apagar a linha do log e tirar a label → deve reaproveitar a página, sem duplicar
+- [x] **Caso 5** — apagar a linha do log e tirar a label → reaproveitou a página, sem duplicar (execução 12)
 - [ ] Conferir a tabela:
       `docker exec n8n-postgres psql -U n8n -d n8n -c "SELECT processado_em, categoria, urgencia, confianca, destino FROM portfolio.log_triagem ORDER BY processado_em DESC;"`
 

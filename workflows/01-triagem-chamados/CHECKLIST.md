@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 4 — app do Google em produção, criando o cliente OAuth e a credencial Gmail no n8n
+**Onde eu parei:** etapa 4 — credencial Gmail conectada, falta o ID do marcador Chamado processado
 
 ---
 
@@ -82,9 +82,9 @@ A mais fácil, e destrava o teste do nó 3.
 - [x] **Publicar o app em `In production`** e aceitar o aviso de app não verificado
       (o Google exigiu página inicial e política de privacidade no Branding; usados o
       repositório e `PRIVACY.md`)
-- [ ] Criar credencial OAuth 2.0 tipo *Web application*
-- [ ] Colar em *Authorized redirect URIs* a URL que o n8n mostra na tela da credencial
-- [ ] Conectar a credencial Gmail no n8n
+- [x] Criar credencial OAuth 2.0 tipo *Web application*
+- [x] Colar em *Authorized redirect URIs* a URL que o n8n mostra na tela da credencial
+- [x] Conectar a credencial Gmail no n8n
 - [ ] Descobrir o ID da label: nó Gmail → **Label → Get Many** → executar → copiar o ID de
       `Chamado processado`
 - [ ] Preencher `GMAIL_LABEL_PROCESSADO` no `.env` e recriar o container
@@ -172,6 +172,8 @@ Registrado na hora, para a seção *O que não funcionou* do README.
 | 2 | Token do Notion visível num print compartilhado | Segredo exposto fora do `.env` | Decisão consciente de não regenerar; print apagado e nenhum print do `.env` vai para post. Regenerar se houver qualquer vazamento |
 | 2 | `process.exit()` logo depois de `fetch` no Node/Windows | `Assertion failed ... async.c` e código de saída de erro com o resultado certo | Lançar erro e usar `process.exitCode` |
 | 2 | Tela do Notion mudou | *My integrations* virou *Developer tools → Connections* | Documentação atualizada |
+| 4 | URI de retorno colada em *Origens JavaScript autorizadas* | `Origem inválida: não é permitido que URIs de origem contenham um caminho` | Apagar e colar em *URIs de redirecionamento autorizados*, a seção de baixo |
+| 4 | Google exige página inicial e política de privacidade para publicar | Botão *Publicar app* desabilitado | Repositório público como página inicial e `PRIVACY.md` como política |
 | 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |
 
 ## Onde isso provavelmente vai quebrar

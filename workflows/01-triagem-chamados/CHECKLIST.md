@@ -140,6 +140,10 @@ Os e-mails prontos para copiar estão no [README](README.md), seção *Como test
 
 Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feliz.
 
+> Rode cada caso com **Execute workflow** (botão no rodapé do canvas), não com *Execute step*.
+> O *Execute step* reaproveita a saída guardada dos nós anteriores que não mudaram, e o
+> teste passa a mostrar o resultado de uma execução velha.
+
 ---
 
 ## Etapa 7 — fechar o workflow (1h)
@@ -197,6 +201,7 @@ Registrado na hora, para a seção *O que não funcionou* do README.
 | 5 | Saída do Notion fixada (pin) para não duplicar página no teste | *Montar registro de log* recebeu `null` em tudo que vinha de `$('Chamado triado').item`; o Postgres recusou com `Column 'mensagem_id' is not nullable` | O `NOT NULL` impediu um log sem identificação. Confirmado: sem pin, todos os campos chegaram |
 | 5 | Falha entre criar a página e gravar o log | Página no Notion, sem log e sem marcador: com o workflow ativo, o próximo ciclo criaria **uma segunda página** | Corrigido com a opção B: busca no Notion pelo *ID da mensagem* antes de criar |
 | 5 | Checagem de duplicidade contava linhas `falha-notion` | Descoberto no desenho da opção B: um chamado que falhou no Notion nunca mais seria tentado, em silêncio | Checagem ignora `falha-notion`; log virou upsert. Provado numa transação com ROLLBACK |
+| 6 | Caso 3 testado com *Execute step* no último nó | Passou por tudo com `ja_processado = 0`, como se o log estivesse vazio | Não era bug: o *Execute step* reaproveitou a saída guardada dos 14 nós anteriores (horários de início idênticos aos da execução 12) e só rodou o último. Testes de cenário usam **Execute workflow**, que roda tudo do zero |
 | 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |
 
 ## Onde isso provavelmente vai quebrar

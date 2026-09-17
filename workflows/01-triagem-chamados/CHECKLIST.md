@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 5 — importar o workflow e testar nó a nó
+**Onde eu parei:** etapa 5 — workflow importado, escolhendo database e marcador direto nos nós
 
 ---
 
@@ -87,7 +87,7 @@ A mais fácil, e destrava o teste do nó 3.
 - [x] Conectar a credencial Gmail no n8n
 - [x] Descobrir o ID da label: nó Gmail → **Label → Get Many** → executar → copiar o ID de
       `Chamado processado`
-- [x] Preencher `GMAIL_LABEL_PROCESSADO` no `.env` e recriar o container
+- [x] Descobrir o ID do marcador — hoje só serve de conferência: o marcador é escolhido no nó
 
 > **Não pule o "In production".** Em modo *Testing*, o Google emite refresh token que
 > **expira em 7 dias**. O fluxo funciona hoje, você posta, e na semana seguinte ele para
@@ -97,8 +97,10 @@ A mais fácil, e destrava o teste do nó 3.
 
 ## Etapa 5 — importar e testar nó a nó (30 min)
 
-- [ ] **Workflows → Import from File** → `workflow.json`
-- [ ] Ligar as quatro credenciais nos nós que pedirem
+- [x] **Workflows → Import from File** → `workflow.json`
+- [x] Ligar as quatro credenciais nos nós que pedirem
+- [ ] No nó *Criar página no Notion*: Database → **From list** → `Chamados`
+- [ ] No nó *Marcar e-mail como processado*: marcador `Chamado processado` na lista
 - [ ] Mandar um e-mail de teste para si mesmo e aplicar a label `Chamados`
 - [ ] Rodar **Test step** no nó 1 e **olhar a saída real**
 - [ ] Ajustar as expressões do nó 2 para os nomes de campo que apareceram de verdade
@@ -174,6 +176,7 @@ Registrado na hora, para a seção *O que não funcionou* do README.
 | 2 | Tela do Notion mudou | *My integrations* virou *Developer tools → Connections* | Documentação atualizada |
 | 4 | URI de retorno colada em *Origens JavaScript autorizadas* | `Origem inválida: não é permitido que URIs de origem contenham um caminho` | Apagar e colar em *URIs de redirecionamento autorizados*, a seção de baixo |
 | 4 | Google exige página inicial e política de privacidade para publicar | Botão *Publicar app* desabilitado | Repositório público como página inicial e `PRIVACY.md` como política |
+| 5 | `$env` bloqueado por padrão no n8n 2 (`N8N_BLOCK_ENV_ACCESS_IN_NODE`) | Editor mostra *not accessible via UI*; na execução daria *access to env vars denied*, e o nó do Notion não lista as propriedades | IDs do database e do marcador escolhidos direto nos nós; segredos continuam nas credenciais. Confirmado lendo o código do n8n 2.39.5 |
 | 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |
 
 ## Onde isso provavelmente vai quebrar
@@ -186,4 +189,3 @@ Guardado aqui porque previsão que você anotou antes vale mais que desculpa dep
 | 4 | OAuth em modo Testing | Funciona 7 dias, depois para sozinho |
 | 4 | Redirect URI diferente de um caractere | `redirect_uri_mismatch` |
 | 5 | Campos do Gmail com nome diferente | `assunto` vem vazio ou `(sem assunto)` |
-| 5 | `$env` vazio dentro do nó | Esqueceu de recriar o container |

@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 5 — teste do log falhou por causa do pin; refazendo sem nó fixado
+**Onde eu parei:** etapa 5 — primeira execução ponta a ponta com sucesso; falta fechar a janela de duplicidade antes dos quatro testes
 
 ---
 
@@ -111,8 +111,9 @@ A mais fácil, e destrava o teste do nó 3.
 - [x] Test step até a página aparecer no Notion — `[Alta] Wi-Fi do 3º andar caiu`, 9 propriedades
       e o corpo conferidos pela API
 - [x] ~~Fixar (pin) a saída do nó do Notion antes de testar os nós seguintes~~ (quebrou o rastreio de itens; ver *O que já quebrou*)
-- [ ] Apagar a página de teste no Notion, tirar o pin e rodar *Marcar e-mail como processado* sem nó fixado
-- [ ] Test step em *Registrar triagem no Postgres* e *Marcar e-mail como processado*
+- [x] Apagar a página de teste no Notion, tirar o pin e rodar *Marcar e-mail como processado* sem nó fixado
+- [x] Test step em *Registrar triagem no Postgres* e *Marcar e-mail como processado* — ponta a ponta:
+      1 página no Notion, 1 linha no log com o mesmo `notion_page_id`, marcador aplicado no Gmail
 - [ ] **Desafixar (unpin) todos os nós antes de ativar o workflow**
 - [ ] **Antes de ativar:** fechar a janela de duplicidade entre criar a página e gravar o log
       (reservar o `mensagem_id` no Postgres antes do Notion, ou procurar a página pelo
@@ -190,7 +191,7 @@ Registrado na hora, para a seção *O que não funcionou* do README.
 | 5 | Propriedades do Notion continuam com *Error fetching options* depois de trocar o database | Erro guardado em cache pelo editor; os valores salvos estavam certos | Salvar e recarregar a página (F5) |
 | 5 | Fallback `$json.headers?.subject` no nó 2 | Os headers do Gmail vêm brutos: o assunto chega como `=?UTF-8?Q?Wi=2DFi_do_3=C2=BA_andar_caiu?=` | Removido; só campos conferidos na saída real (`subject`, `from.text`, `text`, `date`) |
 | 5 | Nó *Validar classificação* lia `$json.categoria`, mas o Basic LLM Chain entrega a resposta em `$json.output` | LLM respondeu `Rede / Alta / 0.9` e o nó transformou em `Revisão manual / Baixa / 0`. Sem erro nenhum: **todo** chamado iria para revisão manual em silêncio | `const llm = $json.output ?? $json`. Testado com a saída real e com quatro respostas inválidas |
-| 5 | Saída do Notion fixada (pin) para não duplicar página no teste | *Montar registro de log* recebeu `null` em tudo que vinha de `$('Chamado triado').item`; o Postgres recusou com `Column 'mensagem_id' is not nullable` | O `NOT NULL` impediu um log sem identificação. Refazer o teste sem pin |
+| 5 | Saída do Notion fixada (pin) para não duplicar página no teste | *Montar registro de log* recebeu `null` em tudo que vinha de `$('Chamado triado').item`; o Postgres recusou com `Column 'mensagem_id' is not nullable` | O `NOT NULL` impediu um log sem identificação. Confirmado: sem pin, todos os campos chegaram |
 | 5 | Falha entre criar a página e gravar o log | Página no Notion, sem log e sem marcador: com o workflow ativo, o próximo ciclo criaria **uma segunda página** | Janela de duplicidade real, ainda aberta. Corrigir antes de ativar |
 | 1 | Docker Desktop instalado em `AppData\Local\Programs` (por usuário), não em `Program Files` | `docker` some do PATH de qualquer app aberto antes da instalação | Reabrir o app, ou acrescentar o diretório ao `$env:Path` da sessão |
 

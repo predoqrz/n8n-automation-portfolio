@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 6 — casos 1, 3 e 5 passaram; faltam os casos 2 e 4
+**Onde eu parei:** etapa 6 — casos 1, 2, 3 e 5 passaram; falta o caso 4 (falha da IA)
 
 ---
 
@@ -130,7 +130,8 @@ A mais fácil, e destrava o teste do nó 3.
 Os e-mails prontos para copiar estão no [README](README.md), seção *Como testar*.
 
 - [x] **Caso 1** — e-mail claro de rede → página em `Rede`, urgência Alta, automático (execução 11)
-- [ ] **Caso 2** — e-mail vago → página em `Revisão manual`
+- [x] **Caso 2** — e-mail vago → página em `Revisão manual`: a IA chutou `Sistemas` com
+      confiança 0.6 e o limite de 0,7 segurou (execução 15)
 - [x] **Caso 3** — tirar a label `Chamado processado` do e-mail do caso 1 → parou em
       `Ignorar duplicado` com `ja_processado = 1`, sem IA, sem busca e sem segunda página (execução 14)
 - [ ] **Caso 4** — desligar a credencial OpenAI → `Revisão manual` com o erro no `Triagem`

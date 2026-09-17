@@ -311,6 +311,11 @@ SELECT destino, count(*), round(avg(confianca), 2) AS confianca_media
 ## Próximos passos
 
 - [ ] Calibrar o limite de 0,7 com os dados reais da tabela de log.
+- [ ] Mostrar o palpite da IA nos chamados em revisão manual. No caso 2, ela sugeriu `Sistemas`
+      com confiança 0.6, e a página só diz `Revisão manual` — quem revisa perde uma pista útil.
+- [ ] Reforçar no prompt que e-mail vago tem urgência `Baixa` e resumo sem suposições. No caso 2,
+      a IA deu urgência `Média` e escreveu "o sistema que foi discutido anteriormente", o que o
+      e-mail não diz.
 - [ ] Notificar no Slack quando entrar chamado de urgência Alta.
 - [ ] Responder o remetente com o link da página, para ele saber que o chamado foi aberto.
 - [ ] Error Workflow global.

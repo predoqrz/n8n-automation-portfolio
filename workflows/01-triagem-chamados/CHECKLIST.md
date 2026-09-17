@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 4 — Branding aceito, publicando o app e indo para a credencial no n8n
+**Onde eu parei:** etapa 4 — app do Google em produção, criando o cliente OAuth e a credencial Gmail no n8n
 
 ---
 
@@ -79,7 +79,7 @@ A mais fácil, e destrava o teste do nó 3.
 - [ ] Criar um filtro no Gmail jogando os e-mails de suporte para `Chamados` (depois dos testes; nos testes a label é aplicada à mão)
 - [x] Google Cloud Console → novo projeto → habilitar a **Gmail API**
 - [x] OAuth consent screen → External → adicionar seu e-mail como usuário de teste
-- [ ] **Publicar o app em `In production`** e aceitar o aviso de app não verificado
+- [x] **Publicar o app em `In production`** e aceitar o aviso de app não verificado
       (o Google exigiu página inicial e política de privacidade no Branding; usados o
       repositório e `PRIVACY.md`)
 - [ ] Criar credencial OAuth 2.0 tipo *Web application*

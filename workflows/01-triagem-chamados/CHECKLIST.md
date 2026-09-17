@@ -3,7 +3,9 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 7 — README e export prontos; faltam assets, ativação e merge
+**Onde eu parei:** etapa 7 — README, export e print do canvas prontos. Próxima sessão: refazer os
+2 prints do Notion sem Remetente, ativar o workflow, gravar o GIF com e-mail novo, conferir as
+execuções automáticas, marcar o README como ✅ e fazer o merge (manual, pelo Pedro)
 
 ---
 
@@ -151,8 +153,11 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
 
 ## Etapa 7 — fechar o workflow (1h)
 
-- [ ] GIF do e-mail virando página, em `assets/`
-- [ ] Print do canvas com os dois caminhos, em `assets/`
+- [ ] GIF do e-mail virando página, em `assets/` — gravar **com o workflow ativo**, usando um
+      e-mail novo, e cortar os quadros da espera do gatilho
+- [x] Print do canvas com os dois caminhos, em `assets/` (`canvas.png`)
+- [ ] Refazer `notion-chamados.png` e `notion-revisao-manual.png` **sem a coluna Remetente**: a
+      primeira versão mostra o início do e-mail pessoal e não foi commitada
 - [x] Preencher no README: **Tempo de construção**, **Resultado** (tempo é piso pelos commits; ajustar se quiser)
 - [x] Passar as anotações de construção para *O que não funcionou* — feito a partir da tabela
       abaixo; conferir se o Obsidian tem algo que não está aqui —

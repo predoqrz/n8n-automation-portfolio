@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 6 — os cinco casos passaram; desfazer o modelo quebrado do caso 4
+**Onde eu parei:** etapa 7 — testes concluídos; fechar o workflow (assets, README, ativação, merge)
 
 ---
 
@@ -125,7 +125,7 @@ A mais fácil, e destrava o teste do nó 3.
 
 ---
 
-## Etapa 6 — os quatro testes (30 min)
+## Etapa 6 — os cinco testes ✅
 
 Os e-mails prontos para copiar estão no [README](README.md), seção *Como testar*.
 
@@ -136,7 +136,7 @@ Os e-mails prontos para copiar estão no [README](README.md), seção *Como test
       `Ignorar duplicado` com `ja_processado = 1`, sem IA, sem busca e sem segunda página (execução 14)
 - [x] **Caso 4** — IA indisponível (modelo inexistente) → `Revisão manual` com o erro da OpenAI
       em *Triagem*, confiança 0, página, log e marcador (execução 16)
-- [ ] **Desfazer o caso 4:** voltar *Modelo OpenAI* para **From list → gpt-4o-mini**
+- [x] **Desfazer o caso 4:** voltar *Modelo OpenAI* para **From list → gpt-4o-mini**
 - [x] **Caso 5** — apagar a linha do log e tirar a label → reaproveitou a página, sem duplicar (execução 12)
 - [ ] Conferir a tabela:
       `docker exec n8n-postgres psql -U n8n -d n8n -c "SELECT processado_em, categoria, urgencia, confianca, destino FROM portfolio.log_triagem ORDER BY processado_em DESC;"`

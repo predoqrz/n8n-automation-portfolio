@@ -138,8 +138,7 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
 - [ ] Status do README: 🚧 → ✅
 - [ ] Revisar o export: nenhum ID, e-mail ou token dentro de nó
 - [ ] Ativar o workflow (toggle **Active**)
-- [ ] Push da branch — o link da política de privacidade no Google aponta para ela e
-      hoje dá 404
+- [x] Push da branch — o link da política de privacidade no Google aponta para ela
 - [ ] Merge de `feat/01-triagem-chamados` na `main`
 - [ ] Trocar o link da política no Branding do Google para `blob/main/PRIVACY.md`
 

@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 5 — LLM respondendo; corrigindo a leitura de `output` no nó Validar classificação
+**Onde eu parei:** etapa 5 — nós 1 a 7 validados; testando a criação da página no Notion
 
 ---
 
@@ -106,7 +106,8 @@ A mais fácil, e destrava o teste do nó 3.
 - [x] Ajustar as expressões do nó 2 para os nomes de campo que apareceram de verdade
       (hoje tem fallback: `$json.subject || $json.Subject || ...`)
 - [x] Test step nos nós 3 e 4
-- [ ] Test step no nó 6 — conferir o JSON que o LLM devolveu
+- [x] Test step no nó 6 — conferir o JSON que o LLM devolveu
+      (Rede · Alta · 0.9, igual nas duas chamadas: `temperature: 0` estável)
 - [ ] Test step até a página aparecer no Notion
 
 > Um nó por vez, de cima para baixo. Rodar o fluxo inteiro e ver "erro" não diz onde.

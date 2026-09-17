@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 6 — casos 1, 2, 3 e 5 passaram; falta o caso 4 (falha da IA)
+**Onde eu parei:** etapa 6 — os cinco casos passaram; desfazer o modelo quebrado do caso 4
 
 ---
 
@@ -134,7 +134,9 @@ Os e-mails prontos para copiar estão no [README](README.md), seção *Como test
       confiança 0.6 e o limite de 0,7 segurou (execução 15)
 - [x] **Caso 3** — tirar a label `Chamado processado` do e-mail do caso 1 → parou em
       `Ignorar duplicado` com `ja_processado = 1`, sem IA, sem busca e sem segunda página (execução 14)
-- [ ] **Caso 4** — desligar a credencial OpenAI → `Revisão manual` com o erro no `Triagem`
+- [x] **Caso 4** — IA indisponível (modelo inexistente) → `Revisão manual` com o erro da OpenAI
+      em *Triagem*, confiança 0, página, log e marcador (execução 16)
+- [ ] **Desfazer o caso 4:** voltar *Modelo OpenAI* para **From list → gpt-4o-mini**
 - [x] **Caso 5** — apagar a linha do log e tirar a label → reaproveitou a página, sem duplicar (execução 12)
 - [ ] Conferir a tabela:
       `docker exec n8n-postgres psql -U n8n -d n8n -c "SELECT processado_em, categoria, urgencia, confianca, destino FROM portfolio.log_triagem ORDER BY processado_em DESC;"`

@@ -319,4 +319,10 @@ SELECT destino, count(*), round(avg(confianca), 2) AS confianca_media
 - [ ] Notificar no Slack quando entrar chamado de urgência Alta.
 - [ ] Responder o remetente com o link da página, para ele saber que o chamado foi aberto.
 - [ ] Error Workflow global.
+- [ ] Alertar quando a IA falhar várias vezes seguidas. No caso 4, a execução terminou como
+      *success*, porque o erro foi tratado — correto para o fluxo, mas com a OpenAI fora do ar
+      por horas todos os chamados iriam para revisão manual sem ninguém ser avisado. O Error
+      Workflow não cobre isso, porque para o n8n não houve erro.
+- [ ] Usar urgência `Não classificada` quando a IA falhar. Hoje cai no padrão `Baixa`: um
+      chamado crítico que chegue durante a queda da IA fica no fim da fila de revisão.
 - [ ] Print do fluxo rodando em `assets/`.

@@ -60,7 +60,7 @@
               "id": "f05",
               "name": "corpo",
               "type": "string",
-              "value": "={{ ($json.text || ($json.html || '').replace(/<[^>]*>/g, ' ')).replace(/s+/g, ' ').trim().slice(0, 1900) }}"
+              "value": "={{ ($json.text || ($json.html || '').replace(/<[^>]*>/g, ' ')).replace(/\\s+/g, ' ').trim().slice(0, 1900) }}"
             },
             {
               "id": "f06",

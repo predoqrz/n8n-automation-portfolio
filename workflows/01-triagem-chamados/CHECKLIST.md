@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 7 — GIF gravado, README fechado. Falta o merge na main (manual, pelo Pedro) e trocar o link da política de privacidade
+**Onde eu parei:** workflow 01 concluído e na main. Falta publicar o post 2 no LinkedIn
 2 prints do Notion sem Remetente, ativar o workflow, gravar o GIF com e-mail novo, conferir as
 execuções automáticas, marcar o README como ✅ e fazer o merge (manual, pelo Pedro)
 
@@ -167,8 +167,8 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
       testado no n8n: diferenças só em IDs (marcadores), padrões omitidos e ordem de chaves
 - [x] Ativar o workflow (toggle **Active**)
 - [x] Push da branch — o link da política de privacidade no Google aponta para ela
-- [ ] Merge de `feat/01-triagem-chamados` na `main`
-- [ ] Trocar o link da política no Branding do Google para `blob/main/PRIVACY.md`
+- [x] Merge de `feat/01-triagem-chamados` na `main` (merge commit, feito pelo Pedro)
+- [x] Trocar o link da política no Branding do Google para `blob/main/PRIVACY.md`
 
 ---
 
@@ -176,15 +176,15 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
 
 Só depois da etapa 7 inteira. Os gates:
 
-- [ ] Roda de ponta a ponta com e-mail real
-- [ ] Casos 3 e 4 passando
-- [ ] GIF no repositório
-- [ ] Pelo menos uma falha real documentada
+- [x] Roda de ponta a ponta com e-mail real (execução 21, automática)
+- [x] Casos 3 e 4 passando
+- [x] GIF no repositório (`triagem.mp4`)
+- [x] Pelo menos uma falha real documentada
 
 Ângulo escolhido: **a IA classifica, mas não decide sozinha** — abaixo de 0,7 vai para
 revisão humana. Fecha com pergunta específica: *onde você colocaria esse limite?*
 
-- [ ] Rascunho escrito
+- [x] Rascunho escrito
 - [ ] Postado
 
 ---

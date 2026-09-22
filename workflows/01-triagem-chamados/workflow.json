@@ -1,0 +1,1095 @@
+{
+  "name": "01 · Triagem automática de chamados",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "label:chamados -label:chamado-processado"
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Gmail · novos chamados",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1120,
+        0
+      ],
+      "notes": "Busca por label em vez de ler a caixa inteira. O '-label:chamado-processado' é a primeira barreira contra reprocessar o mesmo e-mail."
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f01",
+              "name": "mensagem_id",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "f02",
+              "name": "thread_id",
+              "type": "string",
+              "value": "={{ $json.threadId }}"
+            },
+            {
+              "id": "f03",
+              "name": "remetente",
+              "type": "string",
+              "value": "={{ ($json.from?.text || '').replace(/\"/g, '').trim() }}"
+            },
+            {
+              "id": "f04",
+              "name": "assunto",
+              "type": "string",
+              "value": "={{ ($json.subject || '(sem assunto)').trim() }}"
+            },
+            {
+              "id": "f05",
+              "name": "corpo",
+              "type": "string",
+              "value": "={{ ($json.text || ($json.html || '').replace(/<[^>]*>/g, ' ')).replace(/\\s+/g, ' ').trim().slice(0, 1900) }}"
+            },
+            {
+              "id": "f06",
+              "name": "recebido_em",
+              "type": "string",
+              "value": "={{ new Date($json.date).toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Normalizar campos do chamado",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -900,
+        0
+      ],
+      "notes": "Campos conferidos contra a saída real do Gmail Trigger (simple: false): id, threadId, subject, from.text, text, date. Não usar headers: vêm brutos, com o assunto codificado em MIME (=?UTF-8?Q?...?=). Corpo cai para o html sem tags quando o e-mail não tem parte em texto puro, e é cortado em 1900 caracteres, o teto de um bloco do Notion com folga."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT count(*)::int AS ja_processado\n  FROM portfolio.log_triagem\n WHERE mensagem_id = $1\n   AND destino <> 'falha-notion';",
+        "options": {
+          "queryReplacement": "={{ $json.mensagem_id }}"
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "Chamado já processado?",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -680,
+        0
+      ],
+      "alwaysOutputData": true,
+      "notes": "Segunda barreira de idempotência. Conta só chamados que chegaram ao Notion: uma linha 'falha-notion' não pode bloquear a nova tentativa, senão o chamado se perde em silêncio."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c01",
+              "leftValue": "={{ $json.ja_processado }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "É chamado novo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -460,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "a1000000-0000-4000-8000-000000000005",
+      "name": "Ignorar duplicado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        200
+      ],
+      "notes": "Caminho silencioso de propósito: o e-mail já virou página numa execução anterior."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Assunto: {{ $('Normalizar campos do chamado').item.json.assunto }}\nRemetente: {{ $('Normalizar campos do chamado').item.json.remetente }}\nRecebido em: {{ $('Normalizar campos do chamado').item.json.recebido_em }}\n\nCorpo do e-mail:\n---\n{{ $('Normalizar campos do chamado').item.json.corpo }}\n---",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Você é um analista de service desk de TI. Sua tarefa é classificar chamados que chegaram por e-mail.\n\nCategorias permitidas:\n- Acesso: senha, conta bloqueada, MFA, permissão em sistema, criação ou desativação de usuário.\n- Rede: internet fora ou lenta, Wi-Fi, cabo, VPN, DNS, firewall, impressora que não responde na rede.\n- Equipamento: hardware físico com defeito ou faltando — notebook, monitor, teclado, mouse, headset, celular, periférico.\n- Sistemas: erro, lentidão ou dúvida de uso em software corporativo (ERP, CRM, portal interno, e-mail como aplicação).\n\nRegras:\n1. Escolha exatamente uma categoria da lista acima.\n2. urgencia: Alta quando impede o trabalho de várias pessoas ou de alguém em atividade crítica agora; Média quando atrapalha mas existe contorno; Baixa para pedidos, dúvidas e melhorias.\n3. resumo: uma frase em português, no máximo 200 caracteres, dizendo qual é o problema e quem está afetado. Não repita o assunto literalmente.\n4. confianca: número entre 0 e 1 dizendo o quanto você tem certeza da CATEGORIA. Seja honesto e conservador. E-mail vago, sem contexto, com vários assuntos misturados, ou que caberia em duas categorias deve receber confianca abaixo de 0,7 — ele será revisado por uma pessoa, o que é melhor do que ser arquivado na fila errada.\n5. Nunca invente informação que não está no e-mail."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000006",
+      "name": "Classificar chamado com LLM",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -240,
+        -40
+      ],
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "notes": "Se a API cair ou devolver algo fora do schema, a saída de erro (vermelha) manda o chamado para revisão manual. Nada é descartado."
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000007",
+      "name": "Modelo OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -280,
+        180
+      ],
+      "notes": "temperature 0: classificação precisa ser reproduzível. O mesmo e-mail tem que cair na mesma categoria."
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"required\": [\"categoria\", \"urgencia\", \"resumo\", \"confianca\"],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"categoria\": {\n      \"type\": \"string\",\n      \"enum\": [\"Acesso\", \"Rede\", \"Equipamento\", \"Sistemas\"],\n      \"description\": \"Categoria do chamado.\"\n    },\n    \"urgencia\": {\n      \"type\": \"string\",\n      \"enum\": [\"Alta\", \"Média\", \"Baixa\"],\n      \"description\": \"Impacto do problema no trabalho das pessoas.\"\n    },\n    \"resumo\": {\n      \"type\": \"string\",\n      \"description\": \"Uma frase em português, no máximo 200 caracteres.\"\n    },\n    \"confianca\": {\n      \"type\": \"number\",\n      \"minimum\": 0,\n      \"maximum\": 1,\n      \"description\": \"Certeza sobre a categoria, de 0 a 1.\"\n    }\n  }\n}"
+      },
+      "id": "a1000000-0000-4000-8000-000000000008",
+      "name": "Schema da classificação",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -100,
+        180
+      ],
+      "notes": "O enum é o que impede o LLM de inventar categoria nova. Sem isso, um dia ele devolve 'Infraestrutura' e o Notion cria uma opção Select órfã."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Cinto e suspensório: mesmo com schema, a saída do LLM é tratada como não\n// confiável. Qualquer coisa fora do esperado vira revisão manual, em vez de\n// quebrar o fluxo ou abrir o chamado na categoria errada.\n\nconst CATEGORIAS = ['Acesso', 'Rede', 'Equipamento', 'Sistemas'];\nconst URGENCIAS = ['Alta', 'Média', 'Baixa'];\n\nconst base = $('Normalizar campos do chamado').item.json;\n// O Basic LLM Chain com output parser entrega a resposta dentro de `output`.\n// Aceita os dois formatos para não depender da versão do nó.\nconst llm = $json.output ?? $json;\n\nlet categoria = typeof llm.categoria === 'string' ? llm.categoria.trim() : '';\nif (!CATEGORIAS.includes(categoria)) {\n  categoria = 'Revisão manual';\n}\n\nlet urgencia = typeof llm.urgencia === 'string' ? llm.urgencia.trim() : '';\nif (!URGENCIAS.includes(urgencia)) {\n  urgencia = 'Baixa';\n}\n\nlet confianca = Number(llm.confianca);\nif (!Number.isFinite(confianca) || confianca < 0 || confianca > 1) {\n  confianca = 0;\n}\n\n// Categoria inválida zera a confiança: se ela veio errada, não dá para\n// confiar no resto da resposta.\nif (categoria === 'Revisão manual') {\n  confianca = 0;\n}\n\nconst resumo = typeof llm.resumo === 'string' && llm.resumo.trim()\n  ? llm.resumo.trim().slice(0, 500)\n  : base.assunto;\n\nreturn {\n  json: { ...base, categoria, urgencia, resumo, confianca },\n};"
+      },
+      "id": "a1000000-0000-4000-8000-000000000009",
+      "name": "Validar classificação",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c02",
+              "leftValue": "={{ $json.confianca }}",
+              "rightValue": 0.7,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000010",
+      "name": "Confiança suficiente?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        200,
+        -40
+      ],
+      "notes": "0,7 é um chute inicial deliberado. Depois de ~50 chamados reais, olhe a tabela de log e calibre."
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f11",
+              "name": "destino",
+              "type": "string",
+              "value": "notion"
+            },
+            {
+              "id": "f12",
+              "name": "motivo",
+              "type": "string",
+              "value": "=Classificado automaticamente com confiança {{ Number($json.confianca).toFixed(2) }}."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000011",
+      "name": "Marcar triagem automática",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        -160
+      ],
+      "notes": "Com o Notion não há ID de destino para resolver: a categoria é uma propriedade Select do mesmo database. Este nó só carimba a procedência do item."
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f20",
+              "name": "mensagem_id",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.mensagem_id }}"
+            },
+            {
+              "id": "f21",
+              "name": "thread_id",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.thread_id }}"
+            },
+            {
+              "id": "f22",
+              "name": "remetente",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.remetente }}"
+            },
+            {
+              "id": "f23",
+              "name": "assunto",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.assunto }}"
+            },
+            {
+              "id": "f24",
+              "name": "corpo",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.corpo }}"
+            },
+            {
+              "id": "f25",
+              "name": "recebido_em",
+              "type": "string",
+              "value": "={{ $('Normalizar campos do chamado').item.json.recebido_em }}"
+            },
+            {
+              "id": "f26",
+              "name": "categoria",
+              "type": "string",
+              "value": "Revisão manual"
+            },
+            {
+              "id": "f27",
+              "name": "urgencia",
+              "type": "string",
+              "value": "={{ $json.urgencia || 'Baixa' }}"
+            },
+            {
+              "id": "f28",
+              "name": "resumo",
+              "type": "string",
+              "value": "={{ $json.resumo || $('Normalizar campos do chamado').item.json.assunto }}"
+            },
+            {
+              "id": "f29",
+              "name": "confianca",
+              "type": "number",
+              "value": "={{ Number($json.confianca ?? 0) }}"
+            },
+            {
+              "id": "f30",
+              "name": "destino",
+              "type": "string",
+              "value": "revisao-manual"
+            },
+            {
+              "id": "f32",
+              "name": "motivo",
+              "type": "string",
+              "value": "={{ $json.error ? 'Falha na classificação: ' + ($json.error.message || $json.error) : 'Confiança ' + Number($json.confianca ?? 0).toFixed(2) + ' abaixo do limite de 0,70.' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000012",
+      "name": "Encaminhar para revisão manual",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        80
+      ],
+      "notes": "Duas entradas: confiança baixa e falha do LLM. Por isso monta tudo a partir do nó Normalizar, e não do $json — no caminho de erro o $json só tem o erro."
+    },
+    {
+      "parameters": {},
+      "id": "a1000000-0000-4000-8000-000000000013",
+      "name": "Chamado triado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        660,
+        -40
+      ],
+      "notes": "Ponto de encontro dos dois caminhos. Daqui para frente o tratamento é idêntico, e os nós seguintes têm um único nó para referenciar."
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "COLE_AQUI_O_ID_DO_DATABASE_CHAMADOS"
+        },
+        "title": "=[{{ $json.urgencia }}] {{ $json.assunto }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Categoria|select",
+              "selectValue": "={{ $json.categoria }}"
+            },
+            {
+              "key": "Urgência|select",
+              "selectValue": "={{ $json.urgencia }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "Novo"
+            },
+            {
+              "key": "Confiança|number",
+              "numberValue": "={{ Number($json.confianca) }}"
+            },
+            {
+              "key": "Remetente|rich_text",
+              "textContent": "={{ $json.remetente }}"
+            },
+            {
+              "key": "Recebido em|date",
+              "includeTime": true,
+              "range": false,
+              "date": "={{ $json.recebido_em }}"
+            },
+            {
+              "key": "Resumo|rich_text",
+              "textContent": "={{ $json.resumo }}"
+            },
+            {
+              "key": "Triagem|rich_text",
+              "textContent": "={{ $json.motivo }}"
+            },
+            {
+              "key": "ID da mensagem|rich_text",
+              "textContent": "={{ $json.mensagem_id }}"
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "type": "heading_2",
+              "textContent": "Mensagem original"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ $json.corpo }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000014",
+      "name": "Criar página no Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        -140
+      ],
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Database fixo no nó, não em $env: o n8n 2 bloqueia $env por padrão, e o ID não é segredo. Depois de importar, troque 'By ID' por 'From list' e escolha Chamados — assim o editor também carrega as propriedades. A propriedade 'ID da mensagem' permite rastrear da página de volta ao e-mail."
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f40",
+              "name": "mensagem_id",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.mensagem_id }}"
+            },
+            {
+              "id": "f41",
+              "name": "thread_id",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.thread_id }}"
+            },
+            {
+              "id": "f42",
+              "name": "remetente",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.remetente }}"
+            },
+            {
+              "id": "f43",
+              "name": "assunto",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.assunto }}"
+            },
+            {
+              "id": "f44",
+              "name": "categoria",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.categoria }}"
+            },
+            {
+              "id": "f45",
+              "name": "urgencia",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.urgencia }}"
+            },
+            {
+              "id": "f46",
+              "name": "resumo",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.resumo }}"
+            },
+            {
+              "id": "f47",
+              "name": "confianca",
+              "type": "number",
+              "value": "={{ Number($('Chamado triado').item.json.confianca) }}"
+            },
+            {
+              "id": "f48",
+              "name": "destino",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.destino }}"
+            },
+            {
+              "id": "f49",
+              "name": "motivo",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.motivo }}"
+            },
+            {
+              "id": "f50",
+              "name": "notion_page_id",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "f51",
+              "name": "notion_page_url",
+              "type": "string",
+              "value": "={{ $json.url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000015",
+      "name": "Montar registro de log",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1760,
+        -40
+      ],
+      "notes": "Os nomes dos campos batem exatamente com as colunas de portfolio.log_triagem — é o que permite usar 'Map Automatically' no nó Postgres."
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "name",
+          "value": "portfolio"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "name",
+          "value": "log_triagem"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [
+            "mensagem_id"
+          ],
+          "value": {},
+          "schema": []
+        },
+        "options": {},
+        "operation": "upsert"
+      },
+      "id": "a1000000-0000-4000-8000-000000000016",
+      "name": "Registrar triagem no Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1980,
+        -40
+      ],
+      "notes": "Upsert por mensagem_id (ON CONFLICT DO UPDATE): se uma tentativa anterior gravou 'falha-notion', a tentativa bem-sucedida atualiza a mesma linha. Gravado ANTES de marcar o e-mail."
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Chamado triado').item.json.mensagem_id }}",
+        "labelIds": [
+          "COLE_AQUI_O_ID_DO_MARCADOR_CHAMADO_PROCESSADO"
+        ]
+      },
+      "id": "a1000000-0000-4000-8000-000000000017",
+      "name": "Marcar e-mail como processado",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2200,
+        -40
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "Marcador escolhido na lista do próprio nó, não via $env. continueRegularOutput: falhar aqui não pode derrubar a execução — a página já existe e o log já foi gravado."
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f60",
+              "name": "mensagem_id",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.mensagem_id }}"
+            },
+            {
+              "id": "f61",
+              "name": "thread_id",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.thread_id }}"
+            },
+            {
+              "id": "f62",
+              "name": "remetente",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.remetente }}"
+            },
+            {
+              "id": "f63",
+              "name": "assunto",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.assunto }}"
+            },
+            {
+              "id": "f64",
+              "name": "categoria",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.categoria }}"
+            },
+            {
+              "id": "f65",
+              "name": "urgencia",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.urgencia }}"
+            },
+            {
+              "id": "f66",
+              "name": "resumo",
+              "type": "string",
+              "value": "={{ $('Chamado triado').item.json.resumo }}"
+            },
+            {
+              "id": "f67",
+              "name": "confianca",
+              "type": "number",
+              "value": "={{ Number($('Chamado triado').item.json.confianca) }}"
+            },
+            {
+              "id": "f68",
+              "name": "destino",
+              "type": "string",
+              "value": "falha-notion"
+            },
+            {
+              "id": "f69",
+              "name": "motivo",
+              "type": "string",
+              "value": "=Notion indisponível após 3 tentativas: {{ $json.error?.message || $json.error || 'erro desconhecido' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000018",
+      "name": "Registrar falha do Notion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1760,
+        240
+      ],
+      "notes": "O e-mail NÃO é marcado como processado neste caminho. Sem página criada, ele precisa voltar na fila quando o Notion voltar."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/COLE_AQUI_O_ID_DO_DATABASE_CHAMADOS/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filter: { property: 'ID da mensagem', rich_text: { equals: $json.mensagem_id } }, page_size: 1 }) }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000019",
+      "name": "Buscar página pelo ID da mensagem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -40
+      ],
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "notes": "Pergunta ao destino antes de escrever nele. HTTP Request e não o nó Notion 'Get Many': este devolve exatamente uma resposta por chamado, mesmo sem resultado. O Get Many com 'Always Output Data' só emite um item vazio quando TODOS vêm vazios, e perderia chamados num lote misto."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c03",
+              "leftValue": "={{ $json.results?.length ?? 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000020",
+      "name": "Página já existe?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        -40
+      ],
+      "notes": "true = uma execução anterior criou a página e caiu antes de gravar o log. Reaproveita em vez de duplicar."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// O nó HTTP substituiu o item pela resposta da busca. O nó do Notion lê\n// assunto, categoria etc. de $json, então os dados do chamado voltam aqui.\nreturn { json: $('Chamado triado').item.json };"
+      },
+      "id": "a1000000-0000-4000-8000-000000000021",
+      "name": "Retomar dados do chamado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f70",
+              "name": "id",
+              "type": "string",
+              "value": "={{ $json.results[0].id }}"
+            },
+            {
+              "id": "f71",
+              "name": "url",
+              "type": "string",
+              "value": "={{ $json.results[0].url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000022",
+      "name": "Reaproveitar página existente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        80
+      ],
+      "notes": "Entrega id e url com os mesmos nomes da saída do nó 'Criar página no Notion', para o log ser montado igual nos dois caminhos."
+    }
+  ],
+  "connections": {
+    "Gmail · novos chamados": {
+      "main": [
+        [
+          {
+            "node": "Normalizar campos do chamado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar campos do chamado": {
+      "main": [
+        [
+          {
+            "node": "Chamado já processado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamado já processado?": {
+      "main": [
+        [
+          {
+            "node": "É chamado novo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É chamado novo?": {
+      "main": [
+        [
+          {
+            "node": "Classificar chamado com LLM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignorar duplicado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classificar chamado com LLM": {
+      "main": [
+        [
+          {
+            "node": "Validar classificação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Encaminhar para revisão manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Modelo OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classificar chamado com LLM",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schema da classificação": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Classificar chamado com LLM",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar classificação": {
+      "main": [
+        [
+          {
+            "node": "Confiança suficiente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confiança suficiente?": {
+      "main": [
+        [
+          {
+            "node": "Marcar triagem automática",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Encaminhar para revisão manual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar triagem automática": {
+      "main": [
+        [
+          {
+            "node": "Chamado triado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encaminhar para revisão manual": {
+      "main": [
+        [
+          {
+            "node": "Chamado triado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamado triado": {
+      "main": [
+        [
+          {
+            "node": "Buscar página pelo ID da mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar página no Notion": {
+      "main": [
+        [
+          {
+            "node": "Montar registro de log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar falha do Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar registro de log": {
+      "main": [
+        [
+          {
+            "node": "Registrar triagem no Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar triagem no Postgres": {
+      "main": [
+        [
+          {
+            "node": "Marcar e-mail como processado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar falha do Notion": {
+      "main": [
+        [
+          {
+            "node": "Registrar triagem no Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar página pelo ID da mensagem": {
+      "main": [
+        [
+          {
+            "node": "Página já existe?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar falha do Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Página já existe?": {
+      "main": [
+        [
+          {
+            "node": "Reaproveitar página existente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retomar dados do chamado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retomar dados do chamado": {
+      "main": [
+        [
+          {
+            "node": "Criar página no Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reaproveitar página existente": {
+      "main": [
+        [
+          {
+            "node": "Montar registro de log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

@@ -29,7 +29,7 @@ O ambiente inteiro sobe em Docker. Instruções completas em [`infra/README.md`]
 
 ```bash
 cp .env.example .env    # preencha as variáveis
-docker compose -f infra/docker-compose.yml up -d
+docker compose -f infra/docker-compose.yml --env-file .env up -d
 ```
 
 O n8n fica disponível em `http://localhost:5678`.

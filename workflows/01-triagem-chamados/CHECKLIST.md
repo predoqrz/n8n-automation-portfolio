@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** workflow 01 concluído e na main. Falta publicar o post 2 no LinkedIn
+**Onde eu parei:** workflow 01 concluído, na main e publicado no LinkedIn (post 2, 22/09/2026)
 2 prints do Notion sem Remetente, ativar o workflow, gravar o GIF com e-mail novo, conferir as
 execuções automáticas, marcar o README como ✅ e fazer o merge (manual, pelo Pedro)
 
@@ -185,7 +185,7 @@ Só depois da etapa 7 inteira. Os gates:
 revisão humana. Fecha com pergunta específica: *onde você colocaria esse limite?*
 
 - [x] Rascunho escrito
-- [ ] Postado
+- [x] Postado em 22/09/2026, com o vídeo `triagem.mp4` e o link do repositório no primeiro comentário
 
 ---
 

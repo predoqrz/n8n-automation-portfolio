@@ -1,6 +1,6 @@
 # 01 — Triagem automática de chamados
 
-**Status:** 🚧 Em construção
+**Status:** ✅ Rodando
 **Tempo de construção:** ~5 h registradas em commits, em 3 sessões (15 a 17/09/2026) — piso; a configuração das contas no Google e no Notion ficou fora desse relógio
 **Integrações:** Gmail · OpenAI · Notion · PostgreSQL
 **Competências demonstradas:** trigger de e-mail com filtro, LLM com saída estruturada e
@@ -371,12 +371,14 @@ Resultado dos testes com e-mails reais, antes de volume de produção:
 | 3 | E-mail já registrado volta sem label | Parou em *Ignorar duplicado*, sem chamar IA nem Notion | ~1 s |
 | 4 | IA indisponível | `Revisão manual` com o erro da OpenAI em *Triagem*; nada perdido | ~6 s |
 | 5 | Página criada, log perdido | Reaproveitou a página existente; nenhuma duplicata | ~4 s |
+| 6 | Workflow **ativo**, e-mail real recebido sem nenhum clique | Gatilho disparou sozinho (`mode: trigger`), classificou como `Acesso` e criou a página | ~6 s após o marcador |
 
 - Uma classificação usou **~920 tokens** do `gpt-4o-mini` (867 de entrada, 50 de saída).
 - Com `temperature: 0`, o mesmo e-mail recebeu a mesma resposta, palavra por palavra, em
   execuções diferentes.
 - Na triagem manual descrita em *O problema*, cada chamado toma de um a dois minutos de
   leitura e cadastro. Aqui, o caminho completo leva de 4 a 6 segundos, sem ninguém tocar.
+- GIF do caso 6, e-mail virando página sem intervenção, em `assets/triagem.mp4`.
 
 Os números de produção — quantos chamados passam direto e quantos vão para revisão — saem
 desta consulta, depois de algumas semanas ativo:

@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 7 — workflow ativo, prints do Notion refeitos; falta gravar o GIF com execução automática, marcar README como ✅ e fazer o merge
+**Onde eu parei:** etapa 7 — GIF gravado, README fechado. Falta o merge na main (manual, pelo Pedro) e trocar o link da política de privacidade
 2 prints do Notion sem Remetente, ativar o workflow, gravar o GIF com e-mail novo, conferir as
 execuções automáticas, marcar o README como ✅ e fazer o merge (manual, pelo Pedro)
 
@@ -153,8 +153,8 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
 
 ## Etapa 7 — fechar o workflow (1h)
 
-- [ ] GIF do e-mail virando página, em `assets/` — gravar **com o workflow ativo**, usando um
-      e-mail novo, e cortar os quadros da espera do gatilho
+- [x] GIF do e-mail virando página, em `assets/triagem.mp4` — execução 21, mode `trigger`,
+      e-mail "Senha do sistema de ponto expirou" classificado como `Acesso`
 - [x] Print do canvas com os dois caminhos, em `assets/` (`canvas.png`)
 - [x] Refazer `notion-chamados.png` e `notion-revisao-manual.png` sem a coluna Remetente
 - [x] Preencher no README: **Tempo de construção**, **Resultado** (tempo é piso pelos commits; ajustar se quiser)
@@ -162,7 +162,7 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
       abaixo; conferir se o Obsidian tem algo que não está aqui —
       **tudo** que quebrou nas etapas 2, 4 e 5. É o conteúdo que o post 1 prometeu, e
       é a única seção que não dá para escrever depois, de memória
-- [ ] Status do README: 🚧 → ✅
+- [x] Status do README: 🚧 → ✅
 - [x] Revisar o export: nenhum ID, e-mail ou token dentro de nó — comparado com o workflow
       testado no n8n: diferenças só em IDs (marcadores), padrões omitidos e ordem de chaves
 - [x] Ativar o workflow (toggle **Active**)

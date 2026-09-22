@@ -3,7 +3,7 @@
 Ordem pensada para você nunca ficar travado esperando outra coisa: cada etapa é
 testável sozinha, e as mais chatas ficam por último, quando o resto já funciona.
 
-**Onde eu parei:** etapa 7 — README, export e print do canvas prontos. Próxima sessão: refazer os
+**Onde eu parei:** etapa 7 — workflow ativo, prints do Notion refeitos; falta gravar o GIF com execução automática, marcar README como ✅ e fazer o merge
 2 prints do Notion sem Remetente, ativar o workflow, gravar o GIF com e-mail novo, conferir as
 execuções automáticas, marcar o README como ✅ e fazer o merge (manual, pelo Pedro)
 
@@ -156,8 +156,7 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
 - [ ] GIF do e-mail virando página, em `assets/` — gravar **com o workflow ativo**, usando um
       e-mail novo, e cortar os quadros da espera do gatilho
 - [x] Print do canvas com os dois caminhos, em `assets/` (`canvas.png`)
-- [ ] Refazer `notion-chamados.png` e `notion-revisao-manual.png` **sem a coluna Remetente**: a
-      primeira versão mostra o início do e-mail pessoal e não foi commitada
+- [x] Refazer `notion-chamados.png` e `notion-revisao-manual.png` sem a coluna Remetente
 - [x] Preencher no README: **Tempo de construção**, **Resultado** (tempo é piso pelos commits; ajustar se quiser)
 - [x] Passar as anotações de construção para *O que não funcionou* — feito a partir da tabela
       abaixo; conferir se o Obsidian tem algo que não está aqui —
@@ -166,7 +165,7 @@ Os casos 3 e 4 são os que valem em entrevista. Todo mundo mostra o caminho feli
 - [ ] Status do README: 🚧 → ✅
 - [x] Revisar o export: nenhum ID, e-mail ou token dentro de nó — comparado com o workflow
       testado no n8n: diferenças só em IDs (marcadores), padrões omitidos e ordem de chaves
-- [ ] Ativar o workflow (toggle **Active**)
+- [x] Ativar o workflow (toggle **Active**)
 - [x] Push da branch — o link da política de privacidade no Google aponta para ela
 - [ ] Merge de `feat/01-triagem-chamados` na `main`
 - [ ] Trocar o link da política no Branding do Google para `blob/main/PRIVACY.md`

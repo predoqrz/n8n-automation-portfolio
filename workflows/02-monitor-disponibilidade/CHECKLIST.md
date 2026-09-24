@@ -3,7 +3,7 @@
 Mesmo formato do workflow 01: ordem pensada para nunca ficar travado esperando outra
 coisa, e "O que já quebrou" alimentado na hora, não reconstruído de memória depois.
 
-**Onde eu parei:** etapa 4 — caso 1 falhou no insert; corrigido no repositório, aplicar no n8n e rodar de novo
+**Onde eu parei:** etapa 4 — caso 1 passou; próximo é o caso 2
 
 ---
 
@@ -69,8 +69,9 @@ executando de ponta a ponta.
 
 Os passos completos de cada caso estão no [README](README.md), seção *Como testar*.
 
-- [ ] **Caso 1** — primeira execução (`Execute workflow`) → os 4 serviços caem em
+- [x] **Caso 1** — primeira execução (`Execute workflow`) → os 4 serviços caem em
       *Sem alerta (primeira checagem)*, 4 linhas gravadas no banco, nada no Discord
+      (execução 23, depois da correção dos ramos paralelos; log gravado antes da decisão)
 - [ ] **Caso 2** — rodar de novo sem mudar nada → nenhum alerta (estado igual)
 - [ ] **Caso 3** — quebrar a URL do GitHub de propósito → alerta 🔴; rodar de novo →
       sem segundo alerta; devolver a URL → alerta 🟢 de recuperação

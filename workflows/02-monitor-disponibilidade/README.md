@@ -66,7 +66,7 @@ horas gera 24 linhas de log e **1** alerta, não 24.
 | # | Nó | Tipo | O que faz |
 |---|----|------|-----------|
 | 1 | Schedule Trigger · a cada 5 min | Schedule Trigger | Dispara sozinho, de 5 em 5 minutos. |
-| 2 | Serviço: n8n / Notion / OpenAI / API OpenAI / GitHub | Edit Fields (Set) ×4 | Cada um fixa `servico`, `url` e `started_em` de um serviço. |
+| 2 | Serviço: n8n / Notion / OpenAI / GitHub | Edit Fields (Set) ×4 | Cada um fixa `servico`, `url` e `started_em` de um serviço. |
 | 3 | Verificar n8n / Notion / OpenAI / GitHub | HTTP Request ×4 | Faz a chamada, com `neverError` e timeout de 8s. Cada um tem sua própria autenticação. |
 | 4 | Avaliar n8n / Notion / OpenAI / GitHub | Code ×4 | Decide `ok`, calcula `tempo_resposta_ms`, junta com o nó Set correspondente. |
 | 5 | Juntar checagens | Merge (append, 4 entradas) | Uma as 4 checagens paralelas numa lista só. |

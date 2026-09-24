@@ -3,7 +3,7 @@
 Mesmo formato do workflow 01: ordem pensada para nunca ficar travado esperando outra
 coisa, e "O que já quebrou" alimentado na hora, não reconstruído de memória depois.
 
-**Onde eu parei:** etapa 4 — caso 3 completo; falta o caso 4 (relatório diário)
+**Onde eu parei:** etapa 4 concluída — os 5 casos passaram. Próximo: etapa 5, fechar o workflow
 
 ---
 
@@ -65,7 +65,7 @@ executando de ponta a ponta.
 
 ---
 
-## Etapa 4 — os quatro testes (uns 20 min)
+## Etapa 4 — os quatro testes ✅
 
 Os passos completos de cada caso estão no [README](README.md), seção *Como testar*.
 
@@ -81,8 +81,9 @@ Os passos completos de cada caso estão no [README](README.md), seção *Como te
 - [x] Rodada C — devolver a URL do GitHub → alerta 🟢 "GitHub voltou ao ar", 250 ms,
       Discord confirmou o recebimento (execução 27). Caso 3 completo: queda, sem repetir,
       recuperação — as três pontas do controle de ruído provadas com dados reais.
-- [ ] **Caso 4** — abrir os dois nós do ramo diário com `Execute step` e conferir o
-      texto do resumo antes de confiar nele
+- [x] **Caso 4** — os três nós do ramo diário rodados em sequência (execuções 28-30):
+      agregação correta (5 checagens por serviço, GitHub com 2 quedas e 60%), texto
+      formatado certo, Discord confirmou o envio. Todos os 5 casos de teste passaram.
 
 > Assim como no workflow 01, rode com **Execute workflow**, não clicando em `Execute
 > step` só no último nó — isso reaproveita saída antiga dos nós anteriores e o teste

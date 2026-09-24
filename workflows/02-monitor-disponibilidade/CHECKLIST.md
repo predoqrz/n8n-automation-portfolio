@@ -3,7 +3,9 @@
 Mesmo formato do workflow 01: ordem pensada para nunca ficar travado esperando outra
 coisa, e "O que já quebrou" alimentado na hora, não reconstruído de memória depois.
 
-**Onde eu parei:** etapa 4 concluída — os 5 casos passaram. Próximo: etapa 5, fechar o workflow
+**Onde eu parei:** etapa 5 — workflow ativo e rodando sozinho desde 24/09/2026 ~19:49. Faltam
+os prints em `assets/` e deixar passar 24h (até ~25/09 19:49) antes do merge, para o relatório
+diário disparar pelo menos uma vez sem intervenção
 
 ---
 
@@ -97,7 +99,8 @@ Os passos completos de cada caso estão no [README](README.md), seção *Como te
 - [ ] Print do canvas com os dois ramos, em `assets/`
 - [ ] Print do alerta e do relatório diário no Discord, em `assets/`
 - [ ] Revisar o export: nenhum ID, e-mail, token ou webhook do Discord dentro de nó
-- [ ] Ativar o workflow (toggle **Active**)
+- [x] Ativar o workflow — `n8n publish:workflow` + restart do container, confirmado no
+      banco (`active: true`) e no log de boot (`Start Active Workflows:`) em 24/09/2026 ~19:49
 - [ ] Deixar rodar pelo menos 24h antes do merge, para o relatório diário disparar
       pelo menos uma vez de verdade
 - [ ] Merge de `feat/02-monitor-disponibilidade` na `main` (manual, pelo Pedro)

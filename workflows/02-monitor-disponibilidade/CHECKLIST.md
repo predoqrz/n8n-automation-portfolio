@@ -3,7 +3,7 @@
 Mesmo formato do workflow 01: ordem pensada para nunca ficar travado esperando outra
 coisa, e "O que já quebrou" alimentado na hora, não reconstruído de memória depois.
 
-**Onde eu parei:** etapa 4 — rodadas A e B do caso 3 passaram; falta a rodada C (recuperação)
+**Onde eu parei:** etapa 4 — caso 3 completo; falta o caso 4 (relatório diário)
 
 ---
 
@@ -78,7 +78,9 @@ Os passos completos de cada caso estão no [README](README.md), seção *Como te
       Discord confirmou o recebimento (execução 25)
 - [x] Rodada B — rodar de novo sem mudar → sem segundo alerta, `mudou_estado=false`
       porque `ok_anterior` já era `false` (execução 26)
-- [ ] Rodada C — devolver a URL do GitHub → alerta 🟢 de recuperação
+- [x] Rodada C — devolver a URL do GitHub → alerta 🟢 "GitHub voltou ao ar", 250 ms,
+      Discord confirmou o recebimento (execução 27). Caso 3 completo: queda, sem repetir,
+      recuperação — as três pontas do controle de ruído provadas com dados reais.
 - [ ] **Caso 4** — abrir os dois nós do ramo diário com `Execute step` e conferir o
       texto do resumo antes de confiar nele
 

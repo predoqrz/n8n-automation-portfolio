@@ -5,7 +5,10 @@
       "parameters": {
         "rule": {
           "interval": [
-            { "field": "minutes", "minutesInterval": 5 }
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
           ]
         }
       },
@@ -13,194 +16,423 @@
       "name": "Schedule Trigger · a cada 5 min",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-1600, 0],
+      "position": [
+        -1600,
+        0
+      ],
       "notes": "Dispara sozinho, sem esperar nenhum evento externo. É a diferença de competência em relação ao workflow 01, que reage a um e-mail chegando."
     },
-
-    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [
-      { "id": "s01", "name": "servico", "type": "string", "value": "n8n (local)" },
-      { "id": "s02", "name": "url", "type": "string", "value": "http://localhost:5678/healthz" },
-      { "id": "s03", "name": "started_em", "type": "string", "value": "={{ $now.toISO() }}" }
-    ] }, "options": {} },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s01",
+              "name": "servico",
+              "type": "string",
+              "value": "n8n (local)"
+            },
+            {
+              "id": "s02",
+              "name": "url",
+              "type": "string",
+              "value": "http://localhost:5678/healthz"
+            },
+            {
+              "id": "s03",
+              "name": "started_em",
+              "type": "string",
+              "value": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
       "id": "b2000000-0000-4000-8000-000000000002",
       "name": "Serviço: n8n (local)",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [-1360, -300],
+      "position": [
+        -1360,
+        -300
+      ],
       "notes": "healthz roda de dentro do próprio container do n8n. localhost aqui é o n8n checando a si mesmo, o mesmo motivo pelo qual localhost não funciona para falar com o Postgres — é sempre 'este container'."
     },
-    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [
-      { "id": "s01", "name": "servico", "type": "string", "value": "API do Notion" },
-      { "id": "s02", "name": "url", "type": "string", "value": "https://api.notion.com/v1/users/me" },
-      { "id": "s03", "name": "started_em", "type": "string", "value": "={{ $now.toISO() }}" }
-    ] }, "options": {} },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s01",
+              "name": "servico",
+              "type": "string",
+              "value": "API do Notion"
+            },
+            {
+              "id": "s02",
+              "name": "url",
+              "type": "string",
+              "value": "https://api.notion.com/v1/users/me"
+            },
+            {
+              "id": "s03",
+              "name": "started_em",
+              "type": "string",
+              "value": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
       "id": "b2000000-0000-4000-8000-000000000003",
       "name": "Serviço: API do Notion",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [-1360, -100],
+      "position": [
+        -1360,
+        -100
+      ],
       "notes": "users/me exige autenticação. Não é só 'a API do Notion está de pé', é 'a nossa integração continua autorizada' — um token revogado aparece aqui como queda, o que é exatamente o que se quer saber."
     },
-    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [
-      { "id": "s01", "name": "servico", "type": "string", "value": "API da OpenAI" },
-      { "id": "s02", "name": "url", "type": "string", "value": "https://api.openai.com/v1/models" },
-      { "id": "s03", "name": "started_em", "type": "string", "value": "={{ $now.toISO() }}" }
-    ] }, "options": {} },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s01",
+              "name": "servico",
+              "type": "string",
+              "value": "API da OpenAI"
+            },
+            {
+              "id": "s02",
+              "name": "url",
+              "type": "string",
+              "value": "https://api.openai.com/v1/models"
+            },
+            {
+              "id": "s03",
+              "name": "started_em",
+              "type": "string",
+              "value": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
       "id": "b2000000-0000-4000-8000-000000000004",
       "name": "Serviço: API da OpenAI",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [-1360, 100],
+      "position": [
+        -1360,
+        100
+      ],
       "notes": "Listar modelos não gera custo de tokens — é metadado, não uma chamada ao modelo. A cada 5 minutos, 24h por dia, isso importa."
     },
-    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [
-      { "id": "s01", "name": "servico", "type": "string", "value": "GitHub" },
-      { "id": "s02", "name": "url", "type": "string", "value": "https://api.github.com" },
-      { "id": "s03", "name": "started_em", "type": "string", "value": "={{ $now.toISO() }}" }
-    ] }, "options": {} },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s01",
+              "name": "servico",
+              "type": "string",
+              "value": "GitHub"
+            },
+            {
+              "id": "s02",
+              "name": "url",
+              "type": "string",
+              "value": "https://api.github.com"
+            },
+            {
+              "id": "s03",
+              "name": "started_em",
+              "type": "string",
+              "value": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
       "id": "b2000000-0000-4000-8000-000000000005",
       "name": "Serviço: GitHub",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [-1360, 300],
+      "position": [
+        -1360,
+        300
+      ],
       "notes": "Endpoint público, sem autenticação. 12 chamadas por hora fica bem longe do limite de 60/hora sem token que o GitHub aplica por IP."
     },
-
-    { "parameters": {
+    {
+      "parameters": {
         "method": "GET",
         "url": "={{ $json.url }}",
         "authentication": "none",
-        "options": { "timeout": 8000, "response": { "response": { "fullResponse": true, "neverError": true } } }
+        "options": {
+          "timeout": 8000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
       },
       "id": "b2000000-0000-4000-8000-000000000006",
       "name": "Verificar n8n (local)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
-      "position": [-1120, -300],
+      "position": [
+        -1120,
+        -300
+      ],
       "onError": "continueRegularOutput",
       "notes": "neverError faz um 500 virar dado (statusCode no corpo) em vez de exceção. onError cobre o que neverError não cobre: falha de conexão de verdade (serviço fora do ar, DNS não resolve), que é justamente o que este workflow existe para detectar."
     },
-    { "parameters": {
+    {
+      "parameters": {
         "method": "GET",
         "url": "={{ $json.url }}",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "notionApi",
-        "options": { "timeout": 8000, "response": { "response": { "fullResponse": true, "neverError": true } } }
+        "options": {
+          "timeout": 8000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
       },
       "id": "b2000000-0000-4000-8000-000000000007",
       "name": "Verificar API do Notion",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
-      "position": [-1120, -100],
+      "position": [
+        -1120,
+        -100
+      ],
       "onError": "continueRegularOutput",
       "notes": "Reaproveita a credencial 'Notion account' do workflow 01 em vez de guardar o token de novo. O HTTP Request não deixa trocar de credencial por item — por isso cada serviço tem seu próprio nó, não uma lista percorrida por um nó só."
     },
-    { "parameters": {
+    {
+      "parameters": {
         "method": "GET",
         "url": "={{ $json.url }}",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "openAiApi",
-        "options": { "timeout": 8000, "response": { "response": { "fullResponse": true, "neverError": true } } }
+        "options": {
+          "timeout": 8000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
       },
       "id": "b2000000-0000-4000-8000-000000000008",
       "name": "Verificar API da OpenAI",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
-      "position": [-1120, 100],
+      "position": [
+        -1120,
+        100
+      ],
       "onError": "continueRegularOutput",
       "notes": "Reaproveita a credencial 'OpenAI account' do workflow 01."
     },
-    { "parameters": {
+    {
+      "parameters": {
         "method": "GET",
         "url": "={{ $json.url }}",
         "authentication": "none",
-        "options": { "timeout": 8000, "response": { "response": { "fullResponse": true, "neverError": true } } }
+        "options": {
+          "timeout": 8000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
       },
       "id": "b2000000-0000-4000-8000-000000000009",
       "name": "Verificar GitHub",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
-      "position": [-1120, 300],
+      "position": [
+        -1120,
+        300
+      ],
       "onError": "continueRegularOutput",
       "notes": "Sem retry de propósito: se o GitHub estiver mesmo fora, tentar de novo agora só atrasa a checagem dos outros 3 serviços. A próxima chance é em 5 minutos, e é o suficiente."
     },
-
-    { "parameters": { "mode": "runOnceForEachItem", "jsCode": "// Cada 'Avaliar X' faz o mesmo trabalho: junta o que o HTTP Request devolveu com\n// o servico/url/started_em que o Set correspondente guardou, e decide se está ok.\n// O item que sai daqui é autossuficiente — os nós depois do Merge não precisam mais\n// saber de qual dos quatro serviços ele veio.\n\nconst dados = $('Serviço: n8n (local)').item.json;\nconst resp = $json;\n\nconst erro = resp.error;\nconst statusHttp = resp.statusCode ?? null;\nconst ok = !erro && statusHttp >= 200 && statusHttp < 300;\nconst tempoRespostaMs = Math.max(0, Date.now() - Date.parse(dados.started_em));\n\nlet motivo = null;\nif (erro) motivo = String(erro.message || erro).slice(0, 300);\nelse if (!ok) motivo = `HTTP ${statusHttp}`;\n\nreturn {\n  json: {\n    servico: dados.servico,\n    url: dados.url,\n    ok,\n    status_http: statusHttp,\n    tempo_resposta_ms: tempoRespostaMs,\n    motivo,\n  },\n};" },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Cada 'Avaliar X' faz o mesmo trabalho: junta o que o HTTP Request devolveu com\n// o servico/url/started_em que o Set correspondente guardou, e decide se está ok.\n// O item que sai daqui é autossuficiente — os nós depois do Merge não precisam mais\n// saber de qual dos quatro serviços ele veio.\n\nconst dados = $('Serviço: n8n (local)').item.json;\nconst resp = $json;\n\nconst erro = resp.error;\nconst statusHttp = resp.statusCode ?? null;\nconst ok = !erro && statusHttp >= 200 && statusHttp < 300;\nconst tempoRespostaMs = Math.max(0, Date.now() - Date.parse(dados.started_em));\n\nlet motivo = null;\nif (erro) motivo = String(erro.message || erro).slice(0, 300);\nelse if (!ok) motivo = `HTTP ${statusHttp}`;\n\nreturn {\n  json: {\n    servico: dados.servico,\n    url: dados.url,\n    ok,\n    status_http: statusHttp,\n    tempo_resposta_ms: tempoRespostaMs,\n    motivo,\n  },\n};"
+      },
       "id": "b2000000-0000-4000-8000-000000000010",
       "name": "Avaliar n8n (local)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-880, -300]
+      "position": [
+        -880,
+        -300
+      ]
     },
-    { "parameters": { "mode": "runOnceForEachItem", "jsCode": "const dados = $('Serviço: API do Notion').item.json;\nconst resp = $json;\n\nconst erro = resp.error;\nconst statusHttp = resp.statusCode ?? null;\nconst ok = !erro && statusHttp >= 200 && statusHttp < 300;\nconst tempoRespostaMs = Math.max(0, Date.now() - Date.parse(dados.started_em));\n\nlet motivo = null;\nif (erro) motivo = String(erro.message || erro).slice(0, 300);\nelse if (!ok) motivo = `HTTP ${statusHttp}`;\n\nreturn {\n  json: {\n    servico: dados.servico,\n    url: dados.url,\n    ok,\n    status_http: statusHttp,\n    tempo_resposta_ms: tempoRespostaMs,\n    motivo,\n  },\n};" },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const dados = $('Serviço: API do Notion').item.json;\nconst resp = $json;\n\nconst erro = resp.error;\nconst statusHttp = resp.statusCode ?? null;\nconst ok = !erro && statusHttp >= 200 && statusHttp < 300;\nconst tempoRespostaMs = Math.max(0, Date.now() - Date.parse(dados.started_em));\n\nlet motivo = null;\nif (erro) motivo = String(erro.message || erro).slice(0, 300);\nelse if (!ok) motivo = `HTTP ${statusHttp}`;\n\nreturn {\n  json: {\n    servico: dados.servico,\n    url: dados.url,\n    ok,\n    status_http: statusHttp,\n    tempo_resposta_ms: tempoRespostaMs,\n    motivo,\n  },\n};"
+      },
       "id": "b2000000-0000-4000-8000-000000000011",
       "name": "Avaliar API do Notion",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-880, -100]
+      "position": [
+        -880,
+        -100
+      ]
     },
-    { "parameters": { "mode": "runOnceForEachItem", "jsCode": "const dados = $('Serviço: API da OpenAI').item.json;\nconst resp = $json;\n\nconst erro = resp.error;\nconst statusHttp = resp.statusCode ?? null;\nconst ok = !erro && statusHttp >= 200 && statusHttp < 300;\nconst tempoRespostaMs = Math.max(0, Date.now() - Date.parse(dados.started_em));\n\nlet motivo = null;\nif (erro) motivo = String(erro.message || erro).slice(0, 300);\nelse if (!ok) motivo = `HTTP ${statusHttp}`;\n\nreturn {\n  json: {\n    servico: dados.servico,\n    url: dados.url,\n    ok,\n    status_http: statusHttp,\n    tempo_resposta_ms: tempoRespostaMs,\n    motivo,\n  },\n};" },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const dados = $('Serviço: API da OpenAI').item.json;\nconst resp = $json;\n\nconst erro = resp.error;\nconst statusHttp = resp.statusCode ?? null;\nconst ok = !erro && statusHttp >= 200 && statusHttp < 300;\nconst tempoRespostaMs = Math.max(0, Date.now() - Date.parse(dados.started_em));\n\nlet motivo = null;\nif (erro) motivo = String(erro.message || erro).slice(0, 300);\nelse if (!ok) motivo = `HTTP ${statusHttp}`;\n\nreturn {\n  json: {\n    servico: dados.servico,\n    url: dados.url,\n    ok,\n    status_http: statusHttp,\n    tempo_resposta_ms: tempoRespostaMs,\n    motivo,\n  },\n};"
+      },
       "id": "b2000000-0000-4000-8000-000000000012",
       "name": "Avaliar API da OpenAI",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-880, 100]
+      "position": [
+        -880,
+        100
+      ]
     },
-    { "parameters": { "mode": "runOnceForEachItem", "jsCode": "const dados = $('Serviço: GitHub').item.json;\nconst resp = $json;\n\nconst erro = resp.error;\nconst statusHttp = resp.statusCode ?? null;\nconst ok = !erro && statusHttp >= 200 && statusHttp < 300;\nconst tempoRespostaMs = Math.max(0, Date.now() - Date.parse(dados.started_em));\n\nlet motivo = null;\nif (erro) motivo = String(erro.message || erro).slice(0, 300);\nelse if (!ok) motivo = `HTTP ${statusHttp}`;\n\nreturn {\n  json: {\n    servico: dados.servico,\n    url: dados.url,\n    ok,\n    status_http: statusHttp,\n    tempo_resposta_ms: tempoRespostaMs,\n    motivo,\n  },\n};" },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const dados = $('Serviço: GitHub').item.json;\nconst resp = $json;\n\nconst erro = resp.error;\nconst statusHttp = resp.statusCode ?? null;\nconst ok = !erro && statusHttp >= 200 && statusHttp < 300;\nconst tempoRespostaMs = Math.max(0, Date.now() - Date.parse(dados.started_em));\n\nlet motivo = null;\nif (erro) motivo = String(erro.message || erro).slice(0, 300);\nelse if (!ok) motivo = `HTTP ${statusHttp}`;\n\nreturn {\n  json: {\n    servico: dados.servico,\n    url: dados.url,\n    ok,\n    status_http: statusHttp,\n    tempo_resposta_ms: tempoRespostaMs,\n    motivo,\n  },\n};"
+      },
       "id": "b2000000-0000-4000-8000-000000000013",
       "name": "Avaliar GitHub",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-880, 300]
+      "position": [
+        -880,
+        300
+      ]
     },
-
-    { "parameters": { "mode": "append", "numberInputs": 4 },
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 4
+      },
       "id": "b2000000-0000-4000-8000-000000000014",
       "name": "Juntar checagens",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
-      "position": [-620, 0],
+      "position": [
+        -620,
+        0
+      ],
       "notes": "A partir daqui, nenhum nó precisa mais saber de qual dos quatro serviços o item veio — cada um já chegou aqui com servico/url/ok/tempo_resposta_ms no próprio $json."
     },
-
-    { "parameters": {
+    {
+      "parameters": {
         "operation": "executeQuery",
         "query": "SELECT (\n  SELECT ok\n    FROM portfolio.disponibilidade_checks\n   WHERE servico = $1\n   ORDER BY verificado_em DESC\n   LIMIT 1\n) AS ok_anterior;",
-        "options": { "queryReplacement": "={{ $json.servico }}" }
+        "options": {
+          "queryReplacement": "={{ $json.servico }}"
+        }
       },
       "id": "b2000000-0000-4000-8000-000000000015",
       "name": "Buscar último status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.7,
-      "position": [-380, 0],
+      "position": [
+        -380,
+        0
+      ],
       "notes": "O SELECT de dentro do SELECT é de propósito: sem ele, um serviço checado pela primeira vez devolveria zero linhas, e o n8n descartaria o item inteiro em vez de seguir adiante com ok_anterior = null. Foi exatamente esse erro que apareceu no workflow 01 com o Notion."
     },
-    { "parameters": { "mode": "runOnceForEachItem", "jsCode": "// Junta o resultado desta consulta (ok_anterior) com os dados da checagem atual,\n// que ficaram no nó Juntar checagens — o Postgres substituiu o $json todo.\nconst atual = $('Juntar checagens').item.json;\nconst okAnterior = $json.ok_anterior;\n\nconst primeiraChecagem = okAnterior === null || okAnterior === undefined;\nconst mudouEstado = !primeiraChecagem && okAnterior !== atual.ok;\n\nreturn {\n  json: {\n    ...atual,\n    ok_anterior: okAnterior,\n    primeira_checagem: primeiraChecagem,\n    mudou_estado: mudouEstado,\n  },\n};" },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Junta o resultado desta consulta (ok_anterior) com os dados da checagem atual,\n// que ficaram no nó Juntar checagens — o Postgres substituiu o $json todo.\nconst atual = $('Juntar checagens').item.json;\nconst okAnterior = $json.ok_anterior;\n\nconst primeiraChecagem = okAnterior === null || okAnterior === undefined;\nconst mudouEstado = !primeiraChecagem && okAnterior !== atual.ok;\n\nreturn {\n  json: {\n    ...atual,\n    ok_anterior: okAnterior,\n    primeira_checagem: primeiraChecagem,\n    mudou_estado: mudouEstado,\n  },\n};"
+      },
       "id": "b2000000-0000-4000-8000-000000000016",
       "name": "Montar registro da checagem",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-140, 0],
+      "position": [
+        -140,
+        0
+      ],
       "notes": "Decide primeira_checagem e mudou_estado aqui, em código, e não em expressão dentro dos nós IF — mais fácil de testar e de explicar do que operador booleano escondido numa condição."
     },
-    { "parameters": {
-        "schema": { "__rl": true, "mode": "name", "value": "portfolio" },
-        "table": { "__rl": true, "mode": "name", "value": "disponibilidade_checks" },
-        "columns": { "mappingMode": "autoMapInputData", "value": {}, "schema": [] },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "name",
+          "value": "portfolio"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "name",
+          "value": "disponibilidade_checks"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "schema": []
+        },
         "options": {}
       },
       "id": "b2000000-0000-4000-8000-000000000017",
       "name": "Registrar checagem",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.7,
-      "position": [100, 0],
-      "notes": "Insert simples, não upsert: aqui cada checagem é uma linha nova de uma série temporal, não um registro para atualizar. autoMapInputData grava só os campos com nome igual ao de uma coluna — primeira_checagem e mudou_estado, que não existem na tabela, são ignorados sem erro."
+      "position": [
+        340,
+        -200
+      ],
+      "notes": "Insert simples, não upsert: cada checagem é uma linha nova de uma série temporal. O modo autoMapInputData exige que TODO campo do item seja uma coluna — por isso o nó anterior entrega só as 6 colunas. Este nó devolve a linha gravada (RETURNING *), não o item de entrada, e por isso é um ramo final: nada depois dele depende do que ele devolve."
     },
-
-    { "parameters": {
+    {
+      "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
-          "conditions": [ { "id": "c01", "leftValue": "={{ $json.primeira_checagem }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c01",
+              "leftValue": "={{ $json.primeira_checagem }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
           "combinator": "and"
         },
         "looseTypeValidation": true,
@@ -210,20 +442,43 @@
       "name": "Primeira checagem?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [340, 0],
+      "position": [
+        100,
+        0
+      ],
       "notes": "Sem histórico anterior não dá para saber se 'mudou' — não existe estado velho para comparar. Grava e não alerta."
     },
-    { "parameters": {},
+    {
+      "parameters": {},
       "id": "b2000000-0000-4000-8000-000000000019",
       "name": "Sem alerta (primeira checagem)",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [580, 150]
+      "position": [
+        580,
+        150
+      ]
     },
-    { "parameters": {
+    {
+      "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
-          "conditions": [ { "id": "c02", "leftValue": "={{ $json.mudou_estado }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } } ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c02",
+              "leftValue": "={{ $json.mudou_estado }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
           "combinator": "and"
         },
         "looseTypeValidation": true,
@@ -233,57 +488,122 @@
       "name": "Mudou de estado?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [580, 0],
+      "position": [
+        580,
+        0
+      ],
       "notes": "O coração do 'controle de ruído' do README: alerta só dispara na transição, nunca a cada checagem. Um serviço fora do ar por 2 horas gera 24 linhas no log e 1 alerta — não 24."
     },
-    { "parameters": {},
+    {
+      "parameters": {},
       "id": "b2000000-0000-4000-8000-000000000021",
       "name": "Sem mudança",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [820, 150]
+      "position": [
+        820,
+        150
+      ]
     },
-
-    { "parameters": { "mode": "manual", "includeOtherFields": true, "assignments": { "assignments": [
-      { "id": "m01", "name": "emoji", "type": "string", "value": "={{ $json.ok ? '🟢' : '🔴' }}" },
-      { "id": "m02", "name": "titulo", "type": "string", "value": "={{ $json.ok ? ($json.servico + ' voltou ao ar') : ($json.servico + ' caiu') }}" },
-      { "id": "m03", "name": "cor", "type": "number", "value": "={{ $json.ok ? 3066993 : 15158332 }}" },
-      { "id": "m04", "name": "descricao", "type": "string", "value": "={{ $json.ok ? ('Respondeu em ' + $json.tempo_resposta_ms + ' ms.\\n' + $json.url) : ('Motivo: ' + ($json.motivo || 'sem detalhes') + '\\n' + $json.url) }}" }
-    ] }, "options": {} },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m01",
+              "name": "emoji",
+              "type": "string",
+              "value": "={{ $json.ok ? '🟢' : '🔴' }}"
+            },
+            {
+              "id": "m02",
+              "name": "titulo",
+              "type": "string",
+              "value": "={{ $json.ok ? ($json.servico + ' voltou ao ar') : ($json.servico + ' caiu') }}"
+            },
+            {
+              "id": "m03",
+              "name": "cor",
+              "type": "number",
+              "value": "={{ $json.ok ? 3066993 : 15158332 }}"
+            },
+            {
+              "id": "m04",
+              "name": "descricao",
+              "type": "string",
+              "value": "={{ $json.ok ? ('Respondeu em ' + $json.tempo_resposta_ms + ' ms.\\n' + $json.url) : ('Motivo: ' + ($json.motivo || 'sem detalhes') + '\\n' + $json.url) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
       "id": "b2000000-0000-4000-8000-000000000022",
       "name": "Montar mensagem de alerta",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [820, -150],
+      "position": [
+        820,
+        -150
+      ],
       "notes": "3066993 e 15158332 são #2ECC71 (verde) e #E74C3C (vermelho) em decimal — é o formato que a API do Discord espera para a cor do embed, não o hexadecimal."
     },
-    { "parameters": {
+    {
+      "parameters": {
         "authentication": "webhook",
         "operation": "sendLegacy",
         "content": "={{ $json.emoji + ' **' + $json.titulo + '**' }}",
-        "options": { "username": "Monitor de Disponibilidade" },
-        "embeds": { "values": [ { "inputMethod": "fields", "title": "={{ $json.titulo }}", "description": "={{ $json.descricao }}", "color": "={{ $json.cor }}" } ] }
+        "options": {
+          "username": "Monitor de Disponibilidade"
+        },
+        "embeds": {
+          "values": [
+            {
+              "inputMethod": "fields",
+              "title": "={{ $json.titulo }}",
+              "description": "={{ $json.descricao }}",
+              "color": "={{ $json.cor }}"
+            }
+          ]
+        }
       },
       "id": "b2000000-0000-4000-8000-000000000023",
       "name": "Enviar alerta no Discord",
       "type": "n8n-nodes-base.discord",
       "typeVersion": 2,
-      "position": [1060, -150],
+      "position": [
+        1060,
+        -150
+      ],
       "onError": "continueRegularOutput",
       "notes": "Autenticação por webhook: sem bot, sem servidor rodando 24h — só uma URL colada na credencial. Se o Discord estiver fora, a checagem já foi gravada no passo anterior; só o aviso se perde."
     },
-
-    { "parameters": {
-        "rule": { "interval": [ { "field": "days", "daysInterval": 1, "triggerAtHour": 8, "triggerAtMinute": 0 } ] }
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
       },
       "id": "b2000000-0000-4000-8000-000000000024",
       "name": "Schedule Trigger · 08:00 diário",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [-1600, 600],
+      "position": [
+        -1600,
+        600
+      ],
       "notes": "Ramo independente do de 5 em 5 minutos. Os dois só se encontram no mesmo banco de dados — nunca no mesmo fluxo de execução."
     },
-    { "parameters": {
+    {
+      "parameters": {
         "operation": "executeQuery",
         "query": "SELECT servico,\n       count(*) AS total_checagens,\n       count(*) FILTER (WHERE ok) AS checagens_ok,\n       round(100.0 * count(*) FILTER (WHERE ok) / count(*), 1) AS disponibilidade_pct,\n       round(avg(tempo_resposta_ms) FILTER (WHERE ok))::int AS tempo_medio_ms,\n       count(*) FILTER (WHERE NOT ok) AS quedas\n  FROM portfolio.disponibilidade_checks\n WHERE verificado_em >= now() - interval '24 hours'\n GROUP BY servico\n ORDER BY servico;",
         "options": {}
@@ -292,78 +612,351 @@
       "name": "Consultar últimas 24h",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.7,
-      "position": [-1360, 600],
+      "position": [
+        -1360,
+        600
+      ],
       "notes": "Uma linha por serviço, agregada a partir de todas as checagens de 5 em 5 minutos do dia. É a mesma tabela do ramo de alerta, só que lida de um jeito diferente."
     },
-    { "parameters": { "mode": "runOnceForAllItems", "jsCode": "const linhas = $input.all().map(i => i.json);\n\nif (linhas.length === 0) {\n  return [{ json: { texto: '📊 **Relatório de disponibilidade — últimas 24h**\\n\\nNenhuma checagem registrada ainda.' } }];\n}\n\nconst emoji = (pct) => (pct >= 99.5 ? '🟢' : pct >= 95 ? '🟡' : '🔴');\n\nconst partes = linhas.map((l) => {\n  const pct = Number(l.disponibilidade_pct);\n  const tempo = l.tempo_medio_ms != null ? `${l.tempo_medio_ms} ms` : 'sem dado';\n  const quedas = Number(l.quedas) > 0 ? ` · ${l.quedas} queda(s)` : '';\n  return `${emoji(pct)} **${l.servico}**: ${pct}% (${l.checagens_ok}/${l.total_checagens}) · resposta média ${tempo}${quedas}`;\n});\n\nconst texto = '📊 **Relatório de disponibilidade — últimas 24h**\\n\\n' + partes.join('\\n');\n\nreturn [{ json: { texto } }];" },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const linhas = $input.all().map(i => i.json);\n\nif (linhas.length === 0) {\n  return [{ json: { texto: '📊 **Relatório de disponibilidade — últimas 24h**\\n\\nNenhuma checagem registrada ainda.' } }];\n}\n\nconst emoji = (pct) => (pct >= 99.5 ? '🟢' : pct >= 95 ? '🟡' : '🔴');\n\nconst partes = linhas.map((l) => {\n  const pct = Number(l.disponibilidade_pct);\n  const tempo = l.tempo_medio_ms != null ? `${l.tempo_medio_ms} ms` : 'sem dado';\n  const quedas = Number(l.quedas) > 0 ? ` · ${l.quedas} queda(s)` : '';\n  return `${emoji(pct)} **${l.servico}**: ${pct}% (${l.checagens_ok}/${l.total_checagens}) · resposta média ${tempo}${quedas}`;\n});\n\nconst texto = '📊 **Relatório de disponibilidade — últimas 24h**\\n\\n' + partes.join('\\n');\n\nreturn [{ json: { texto } }];"
+      },
       "id": "b2000000-0000-4000-8000-000000000026",
       "name": "Montar resumo diário",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-1120, 600],
+      "position": [
+        -1120,
+        600
+      ],
       "notes": "runOnceForAllItems, não runOnceForEachItem: aqui a saída é UMA mensagem que fala de todos os serviços juntos, não uma mensagem por item. 99,5% vira 🟢, 95% a 99,5% vira 🟡, abaixo disso 🔴 — limites de exemplo, ajustáveis."
     },
-    { "parameters": {
+    {
+      "parameters": {
         "authentication": "webhook",
         "operation": "sendLegacy",
         "content": "={{ $json.texto }}",
-        "options": { "username": "Monitor de Disponibilidade" }
+        "options": {
+          "username": "Monitor de Disponibilidade"
+        }
       },
       "id": "b2000000-0000-4000-8000-000000000027",
       "name": "Enviar relatório diário",
       "type": "n8n-nodes-base.discord",
       "typeVersion": 2,
-      "position": [-880, 600],
+      "position": [
+        -880,
+        600
+      ],
       "onError": "continueRegularOutput",
       "notes": "Mesma credencial de webhook do alerta — pode ser o mesmo canal do Discord ou outro, dependendo de como o webhook foi criado."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// O insert do Postgres recusa o item inteiro se houver um campo sem coluna\n// correspondente (ok_anterior, primeira_checagem, mudou_estado). Este nó entrega\n// só as 6 colunas da tabela; o item completo segue pelo outro ramo, até os IF.\nreturn {\n  json: {\n    servico: $json.servico,\n    url: $json.url,\n    ok: $json.ok,\n    status_http: $json.status_http,\n    tempo_resposta_ms: $json.tempo_resposta_ms,\n    motivo: $json.motivo,\n  },\n};"
+      },
+      "id": "b2000000-0000-4000-8000-000000000028",
+      "name": "Separar colunas da tabela",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        100,
+        -200
+      ],
+      "notes": "Fica acima do ramo dos IF de propósito: no modo de execução v1, o n8n roda os ramos de cima para baixo. O log é gravado antes do alerta, e se a gravação falhar a execução para antes de avisar."
     }
   ],
   "connections": {
     "Schedule Trigger · a cada 5 min": {
-      "main": [[
-        { "node": "Serviço: n8n (local)", "type": "main", "index": 0 },
-        { "node": "Serviço: API do Notion", "type": "main", "index": 0 },
-        { "node": "Serviço: API da OpenAI", "type": "main", "index": 0 },
-        { "node": "Serviço: GitHub", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          {
+            "node": "Serviço: n8n (local)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Serviço: API do Notion",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Serviço: API da OpenAI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Serviço: GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "Serviço: n8n (local)": { "main": [[{ "node": "Verificar n8n (local)", "type": "main", "index": 0 }]] },
-    "Serviço: API do Notion": { "main": [[{ "node": "Verificar API do Notion", "type": "main", "index": 0 }]] },
-    "Serviço: API da OpenAI": { "main": [[{ "node": "Verificar API da OpenAI", "type": "main", "index": 0 }]] },
-    "Serviço: GitHub": { "main": [[{ "node": "Verificar GitHub", "type": "main", "index": 0 }]] },
-
-    "Verificar n8n (local)": { "main": [[{ "node": "Avaliar n8n (local)", "type": "main", "index": 0 }]] },
-    "Verificar API do Notion": { "main": [[{ "node": "Avaliar API do Notion", "type": "main", "index": 0 }]] },
-    "Verificar API da OpenAI": { "main": [[{ "node": "Avaliar API da OpenAI", "type": "main", "index": 0 }]] },
-    "Verificar GitHub": { "main": [[{ "node": "Avaliar GitHub", "type": "main", "index": 0 }]] },
-
-    "Avaliar n8n (local)": { "main": [[{ "node": "Juntar checagens", "type": "main", "index": 0 }]] },
-    "Avaliar API do Notion": { "main": [[{ "node": "Juntar checagens", "type": "main", "index": 1 }]] },
-    "Avaliar API da OpenAI": { "main": [[{ "node": "Juntar checagens", "type": "main", "index": 2 }]] },
-    "Avaliar GitHub": { "main": [[{ "node": "Juntar checagens", "type": "main", "index": 3 }]] },
-
-    "Juntar checagens": { "main": [[{ "node": "Buscar último status", "type": "main", "index": 0 }]] },
-    "Buscar último status": { "main": [[{ "node": "Montar registro da checagem", "type": "main", "index": 0 }]] },
-    "Montar registro da checagem": { "main": [[{ "node": "Registrar checagem", "type": "main", "index": 0 }]] },
-    "Registrar checagem": { "main": [[{ "node": "Primeira checagem?", "type": "main", "index": 0 }]] },
-
+    "Serviço: n8n (local)": {
+      "main": [
+        [
+          {
+            "node": "Verificar n8n (local)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serviço: API do Notion": {
+      "main": [
+        [
+          {
+            "node": "Verificar API do Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serviço: API da OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Verificar API da OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serviço: GitHub": {
+      "main": [
+        [
+          {
+            "node": "Verificar GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar n8n (local)": {
+      "main": [
+        [
+          {
+            "node": "Avaliar n8n (local)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar API do Notion": {
+      "main": [
+        [
+          {
+            "node": "Avaliar API do Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar API da OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Avaliar API da OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar GitHub": {
+      "main": [
+        [
+          {
+            "node": "Avaliar GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avaliar n8n (local)": {
+      "main": [
+        [
+          {
+            "node": "Juntar checagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avaliar API do Notion": {
+      "main": [
+        [
+          {
+            "node": "Juntar checagens",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Avaliar API da OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Juntar checagens",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Avaliar GitHub": {
+      "main": [
+        [
+          {
+            "node": "Juntar checagens",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Juntar checagens": {
+      "main": [
+        [
+          {
+            "node": "Buscar último status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar último status": {
+      "main": [
+        [
+          {
+            "node": "Montar registro da checagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar registro da checagem": {
+      "main": [
+        [
+          {
+            "node": "Separar colunas da tabela",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Primeira checagem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Primeira checagem?": {
       "main": [
-        [{ "node": "Sem alerta (primeira checagem)", "type": "main", "index": 0 }],
-        [{ "node": "Mudou de estado?", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Sem alerta (primeira checagem)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mudou de estado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Mudou de estado?": {
       "main": [
-        [{ "node": "Montar mensagem de alerta", "type": "main", "index": 0 }],
-        [{ "node": "Sem mudança", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Montar mensagem de alerta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sem mudança",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Montar mensagem de alerta": { "main": [[{ "node": "Enviar alerta no Discord", "type": "main", "index": 0 }]] },
-
-    "Schedule Trigger · 08:00 diário": { "main": [[{ "node": "Consultar últimas 24h", "type": "main", "index": 0 }]] },
-    "Consultar últimas 24h": { "main": [[{ "node": "Montar resumo diário", "type": "main", "index": 0 }]] },
-    "Montar resumo diário": { "main": [[{ "node": "Enviar relatório diário", "type": "main", "index": 0 }]] }
+    "Montar mensagem de alerta": {
+      "main": [
+        [
+          {
+            "node": "Enviar alerta no Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger · 08:00 diário": {
+      "main": [
+        [
+          {
+            "node": "Consultar últimas 24h",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar últimas 24h": {
+      "main": [
+        [
+          {
+            "node": "Montar resumo diário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar resumo diário": {
+      "main": [
+        [
+          {
+            "node": "Enviar relatório diário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar colunas da tabela": {
+      "main": [
+        [
+          {
+            "node": "Registrar checagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "settings": {
     "executionOrder": "v1",

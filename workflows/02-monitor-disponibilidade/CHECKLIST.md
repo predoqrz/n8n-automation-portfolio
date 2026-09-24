@@ -3,7 +3,7 @@
 Mesmo formato do workflow 01: ordem pensada para nunca ficar travado esperando outra
 coisa, e "O que já quebrou" alimentado na hora, não reconstruído de memória depois.
 
-**Onde eu parei:** etapa 4 — testes
+**Onde eu parei:** etapa 4 — caso 1 falhou no insert; corrigido no repositório, aplicar no n8n e rodar de novo
 
 ---
 
@@ -106,6 +106,8 @@ n8n veio antes de escrever o arquivo.
 |---|---|---|---|
 | 0 | `\$` em vez de `$` dentro do código JavaScript dos nós Code, ao escrever o `workflow.json` | `SyntaxError: Bad escaped character in JSON` | `\$` não é um escape válido em JSON. Corrigido substituindo por `$` puro nos três pontos afetados |
 | 0 | `sed -i 's/\\\$/$/g'` não encontrava o padrão, mesmo com o escaping "certo" | Comando rodava sem erro, mas o arquivo não mudava | Troquei por um script Node percorrendo caractere a caractere — mais lento de escrever, impossível de errar |
+| 4 | Insert com mapeamento automático recebeu campos sem coluna (`ok_anterior`, `primeira_checagem`, `mudou_estado`) | `Column 'ok_anterior' does not exist in selected table` no caso 1 | Suposição minha não conferida no código do nó. Nó novo *Separar colunas da tabela* entrega só as 6 colunas |
+| 4 | O insert devolve a linha gravada (`RETURNING *`), não o item | Achado ao investigar o erro acima: os IF depois do insert nunca veriam `mudou_estado`, e **nenhum alerta sairia**, sem erro | Log e alerta viraram ramos paralelos a partir de *Montar registro da checagem* |
 | 3 | Na importação, o n8n exportou um workflow vazio por cima do `workflow.json` | Arquivo com `"name": "My workflow"` e 0 nós | *Import from File* e *Download* ficam no mesmo menu `⋯`. Arquivo restaurado com `git checkout` |
 | 0 | HTTP Request não deixa trocar de credencial por item | Um único nó com lista de 4 serviços não funcionaria para os 2 que precisam de autenticação | Desenho mudou para 4 nós HTTP Request separados, cada um com sua própria autenticação fixa, unidos depois por um nó Merge |
 

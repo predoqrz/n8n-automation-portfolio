@@ -42,8 +42,8 @@ flowchart TD
     D4 --> E
     E --> F[Buscar último status]
     F --> G[Montar registro]
-    G --> H[(Registrar checagem)]
-    H --> I{Primeira checagem?}
+    G --> S[Separar colunas da tabela] --> H[(Registrar checagem)]
+    G --> I{Primeira checagem?}
     I -->|sim| J[Sem alerta]
     I -->|não| K{Mudou de estado?}
     K -->|sim| L[Montar mensagem] --> M[Discord: alerta]
@@ -72,7 +72,8 @@ horas gera 24 linhas de log e **1** alerta, não 24.
 | 5 | Juntar checagens | Merge (append, 4 entradas) | Uma as 4 checagens paralelas numa lista só. |
 | 6 | Buscar último status | Postgres (Execute Query) | Pergunta ao banco qual foi o resultado anterior desse serviço. |
 | 7 | Montar registro da checagem | Code | Decide `primeira_checagem` e `mudou_estado`. |
-| 8 | Registrar checagem | Postgres (Insert) | Grava a linha em `portfolio.disponibilidade_checks`. |
+| 8 | Separar colunas da tabela | Code | Entrega ao insert só as 6 colunas da tabela. Ramo paralelo ao dos IF. |
+| 8b | Registrar checagem | Postgres (Insert) | Grava a linha em `portfolio.disponibilidade_checks`. Fim do ramo. |
 | 9 | Primeira checagem? | IF | Sem histórico, não há o que comparar. |
 | 10 | Sem alerta (primeira checagem) | No Operation | Fim silencioso, de propósito. |
 | 11 | Mudou de estado? | IF | O filtro central do "controle de ruído". |
@@ -122,6 +123,15 @@ horas gera 24 linhas de log e **1** alerta, não 24.
   condição dos nós IF:** fica testável fora do n8n (ver `sql/` e os testes descritos
   abaixo) e mais fácil de explicar do que um operador escondido numa expressão booleana.
 
+- **Por que o log e o alerta são ramos paralelos, e não uma linha só:** o insert do Postgres
+  tem dois comportamentos que impedem colocar os IF depois dele. Primeiro, ele recusa o item
+  inteiro se houver um campo sem coluna correspondente (`primeira_checagem`, `mudou_estado`).
+  Segundo, ele devolve a linha gravada (`RETURNING *`), não o item que entrou — os campos da
+  decisão sumiriam. Por isso o nó *Montar registro da checagem* abre dois ramos: um separa as
+  colunas e grava, o outro decide o alerta com o item completo. O ramo do log fica acima no
+  canvas porque o n8n (modo de execução v1) roda os ramos de cima para baixo: o log é gravado
+  antes do alerta, e uma falha na gravação para a execução antes de avisar.
+
 - **Por que Discord com autenticação webhook, e não bot:** um webhook não exige servidor
   rodando 24h nem processo de aprovação — é uma URL colada na credencial. Para avisar um
   canal, é suficiente; um bot só valeria a pena se o workflow precisasse ler mensagens de
@@ -132,6 +142,21 @@ horas gera 24 linhas de log e **1** alerta, não 24.
   o item inteiro em vez de seguir adiante com `ok_anterior = null`. Foi exatamente esse
   erro — "a falha silenciosa" — que apareceu no workflow 01 com uma consulta parecida.
   Aprendida lá, aplicada aqui antes de acontecer de novo.
+
+## O que não funcionou
+
+- **A suposição que não foi conferida.** O desenho original gravava o item completo no Postgres
+  com mapeamento automático, supondo que campos sem coluna seriam ignorados. Todo o resto do
+  workflow foi conferido no código do n8n antes de escrever o arquivo; esse detalhe não, e
+  estava errado: o nó exige que todo campo seja uma coluna. O primeiro teste parou com
+  *Column 'ok_anterior' does not exist in selected table*.
+
+- **O erro visível escondia um silencioso.** Ao investigar, apareceu um segundo problema: o
+  insert devolve a linha gravada, não o item de entrada. Mesmo que a gravação tivesse
+  funcionado, os IF logo depois dela leriam `primeira_checagem` e `mudou_estado` de um
+  item sem esses campos, tudo cairia em *Sem mudança*, e o monitor nunca mandaria um alerta
+  — com a execução verde. É a mesma classe de falha silenciosa do workflow 01. A correção
+  dos dois foi a mesma: tirar os IF de depois do insert (ver *Decisões técnicas*).
 
 ## Tratamento de erro
 

@@ -3,7 +3,7 @@
 Mesmo formato do workflow 01: ordem pensada para nunca ficar travado esperando outra
 coisa, e "O que já quebrou" alimentado na hora, não reconstruído de memória depois.
 
-**Onde eu parei:** etapa 2 — webhook do Discord
+**Onde eu parei:** etapa 3 — importar o workflow e ligar as credenciais
 
 ---
 
@@ -36,13 +36,13 @@ executando de ponta a ponta.
 
 ---
 
-## Etapa 2 — Discord (uns 10 min)
+## Etapa 2 — Discord ✅
 
-- [ ] Criar um servidor no Discord (ou usar um que já tenha)
-- [ ] Criar um canal, por exemplo `#monitor`
-- [ ] **Configurações do canal → Integrações → Webhooks → Novo Webhook**
-- [ ] Copiar a **URL do Webhook**
-- [ ] No n8n: **Credentials → Add credential → Discord Webhook** → colar a URL
+- [x] Criar um servidor no Discord (ou usar um que já tenha)
+- [x] Criar um canal, por exemplo `#monitor`
+- [x] **Configurações do canal → Integrações → Webhooks → Novo Webhook**
+- [x] Copiar a **URL do Webhook**
+- [x] No n8n: **Credentials → Add credential → Discord Webhook** → colar a URL
 
 > Webhook não precisa de bot, de app registrado no Discord Developer Portal, nem de
 > processo de aprovação. É a opção mais simples das três que o n8n oferece para o

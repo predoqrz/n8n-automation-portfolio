@@ -3,7 +3,7 @@
 Mesmo formato do workflow 01: ordem pensada para nunca ficar travado esperando outra
 coisa, e "O que já quebrou" alimentado na hora, não reconstruído de memória depois.
 
-**Onde eu parei:** etapa 3 — importar o workflow e ligar as credenciais
+**Onde eu parei:** etapa 4 — testes
 
 ---
 
@@ -51,16 +51,16 @@ executando de ponta a ponta.
 
 ---
 
-## Etapa 3 — importar e ligar credenciais (uns 15 min)
+## Etapa 3 — importar e ligar credenciais ✅
 
-- [ ] **Workflows → Import from File** → `workflow.json`
-- [ ] Devem aparecer 27 nós
-- [ ] Ligar a credencial **Discord Webhook** nos dois nós Discord (`Enviar alerta no
+- [x] **Workflows → Import from File** → `workflow.json`
+- [x] Devem aparecer 27 nós
+- [x] Ligar a credencial **Discord Webhook** nos dois nós Discord (`Enviar alerta no
       Discord`, `Enviar relatório diário`)
-- [ ] Ligar a credencial **Postgres account** (já existente) nos três nós Postgres
-- [ ] Ligar a credencial **Notion account** (já existente) em `Verificar API do Notion`
-- [ ] Ligar a credencial **OpenAI account** (já existente) em `Verificar API da OpenAI`
-- [ ] Os dois nós sem autenticação (`Verificar n8n (local)`, `Verificar GitHub`) não
+- [x] Ligar a credencial **Postgres account** (já existente) nos três nós Postgres
+- [x] Ligar a credencial **Notion account** (já existente) em `Verificar API do Notion`
+- [x] Ligar a credencial **OpenAI account** (já existente) em `Verificar API da OpenAI`
+- [x] Os dois nós sem autenticação (`Verificar n8n (local)`, `Verificar GitHub`) não
       pedem credencial — confirme que o campo *Authentication* está em `None`
 
 ---
@@ -106,6 +106,7 @@ n8n veio antes de escrever o arquivo.
 |---|---|---|---|
 | 0 | `\$` em vez de `$` dentro do código JavaScript dos nós Code, ao escrever o `workflow.json` | `SyntaxError: Bad escaped character in JSON` | `\$` não é um escape válido em JSON. Corrigido substituindo por `$` puro nos três pontos afetados |
 | 0 | `sed -i 's/\\\$/$/g'` não encontrava o padrão, mesmo com o escaping "certo" | Comando rodava sem erro, mas o arquivo não mudava | Troquei por um script Node percorrendo caractere a caractere — mais lento de escrever, impossível de errar |
+| 3 | Na importação, o n8n exportou um workflow vazio por cima do `workflow.json` | Arquivo com `"name": "My workflow"` e 0 nós | *Import from File* e *Download* ficam no mesmo menu `⋯`. Arquivo restaurado com `git checkout` |
 | 0 | HTTP Request não deixa trocar de credencial por item | Um único nó com lista de 4 serviços não funcionaria para os 2 que precisam de autenticação | Desenho mudou para 4 nós HTTP Request separados, cada um com sua própria autenticação fixa, unidos depois por um nó Merge |
 
 ## Onde isso provavelmente vai quebrar

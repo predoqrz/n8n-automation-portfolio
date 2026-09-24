@@ -3,7 +3,7 @@
 Mesmo formato do workflow 01: ordem pensada para nunca ficar travado esperando outra
 coisa, e "O que já quebrou" alimentado na hora, não reconstruído de memória depois.
 
-**Onde eu parei:** etapa 4 — caso 1 passou; próximo é o caso 2
+**Onde eu parei:** etapa 4 — casos 1 e 2 passaram; próximo é o caso 3 (queda simulada no GitHub)
 
 ---
 
@@ -72,7 +72,8 @@ Os passos completos de cada caso estão no [README](README.md), seção *Como te
 - [x] **Caso 1** — primeira execução (`Execute workflow`) → os 4 serviços caem em
       *Sem alerta (primeira checagem)*, 4 linhas gravadas no banco, nada no Discord
       (execução 23, depois da correção dos ramos paralelos; log gravado antes da decisão)
-- [ ] **Caso 2** — rodar de novo sem mudar nada → nenhum alerta (estado igual)
+- [x] **Caso 2** — rodar de novo sem mudar nada → nenhum alerta (estado igual)
+      (execução 24: 4 itens com `ok_anterior=true`, todos em *Sem mudança*, 8 linhas no banco)
 - [ ] **Caso 3** — quebrar a URL do GitHub de propósito → alerta 🔴; rodar de novo →
       sem segundo alerta; devolver a URL → alerta 🟢 de recuperação
 - [ ] **Caso 4** — abrir os dois nós do ramo diário com `Execute step` e conferir o

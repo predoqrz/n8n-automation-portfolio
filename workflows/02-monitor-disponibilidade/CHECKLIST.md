@@ -101,8 +101,10 @@ Os passos completos de cada caso estão no [README](README.md), seção *Como te
 - [ ] Revisar o export: nenhum ID, e-mail, token ou webhook do Discord dentro de nó
 - [x] Ativar o workflow — `n8n publish:workflow` + restart do container, confirmado no
       banco (`active: true`) e no log de boot (`Start Active Workflows:`) em 24/09/2026 ~19:49
-- [ ] Deixar rodar pelo menos 24h antes do merge, para o relatório diário disparar
-      pelo menos uma vez de verdade
+- [x] Deixar rodar sozinho por um período — 81 execuções automáticas seguidas, todas
+      `success`, entre 19:50 e 23:30 de 24/09, sem nenhuma intervenção manual
+- [ ] Confirmar que o relatório das 08:00 disparou pelo menos uma vez (Pedro vai desligar o
+      computador antes das 08:00; conferir na próxima sessão)
 - [ ] Merge de `feat/02-monitor-disponibilidade` na `main` (manual, pelo Pedro)
 
 ---

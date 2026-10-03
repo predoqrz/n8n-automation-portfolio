@@ -1,6 +1,6 @@
 # 02 — Monitor de disponibilidade com relatório diário
 
-**Status:** 🚧 Em construção
+**Status:** ✅ Rodando
 **Integrações:** HTTP Request · PostgreSQL · Discord · Notion (API, só para checagem) · OpenAI (API, só para checagem)
 **Competências demonstradas:** Schedule Trigger, HTTP Request com tratamento de erro,
 comparação de estado via banco, agregação SQL, alerta com controle de ruído
@@ -158,6 +158,14 @@ horas gera 24 linhas de log e **1** alerta, não 24.
   — com a execução verde. É a mesma classe de falha silenciosa do workflow 01. A correção
   dos dois foi a mesma: tirar os IF de depois do insert (ver *Decisões técnicas*).
 
+- **O relatório das 08:00 nunca disparou — e o motivo não era o workflow.** Depois de nove
+  dias com o workflow "ativo", a consulta ao banco mostrou zero execuções perto das 08:00 em
+  qualquer dia. Nada estava quebrado: um agendamento só roda se a máquina estiver ligada, e a
+  deste portfólio estava desligada ou suspensa em todas as 08:00. Para provar que o gatilho
+  funciona, o cron foi trocado por alguns minutos à frente, disparou sozinho e foi restaurado.
+  Um monitor que depende de um notebook ligado é um limite real, não um detalhe — é o que
+  justifica o próximo passo abaixo.
+
 ## Tratamento de erro
 
 | Falha | O que acontece |
@@ -221,11 +229,38 @@ mandar para o Discord.
 
 ## Resultado
 
-A preencher depois de rodar em produção por alguns dias: quantas checagens, quantas
-quedas reais capturadas, disponibilidade de cada serviço.
+![Canvas do workflow no n8n, com os dois ramos](assets/fluxo.jpg)
+
+![Alertas de queda e recuperação e relatório diário no Discord](assets/alertas.png)
+
+Números do banco, de 24/09 a 03/10/2026, com o workflow ativo no Docker local:
+
+| Serviço | Checagens | Falhas | Disponibilidade | Tempo médio |
+|---|---|---|---|---|
+| n8n (local) | 342 | 0 | 100% | 17 ms |
+| API do Notion | 342 | 0 | 100% | 553 ms |
+| API da OpenAI | 342 | 0 | 100% | 1173 ms |
+| GitHub | 342 | 2 | 99,42% | 257 ms |
+
+- **337 execuções automáticas, todas `success`** (as outras checagens vieram dos testes
+  manuais). Nenhuma execução falhou.
+- **As 2 falhas do GitHub não são quedas reais:** são a queda simulada do caso 3 (URL
+  trocada de propósito, HTTP 404). Nenhum dos quatro serviços caiu de verdade no período,
+  então o monitor ainda não capturou uma queda orgânica — só a simulada, com os três
+  desfechos provados (alerta, sem repetição, recuperação).
+- **Cobertura é de cerca de 28 horas de checagem contínua**, espalhadas por quatro dias,
+  não 9 dias seguidos: o monitor roda num Docker local, e a máquina ficou desligada entre
+  uma sessão e outra.
+- **Relatório diário:** o ramo foi provado de duas formas — rodado em sequência no caso 4
+  e disparado pelo próprio agendamento, sem ninguém clicar (execução 406, 03/10 14:30,
+  cron trocado temporariamente para o teste e depois restaurado para `0 8 * * *`).
+  O horário real das 08:00 **ainda não foi exercitado**, porque a máquina estava desligada
+  ou suspensa em todas as 08:00 do período.
 
 ## Próximos passos
 
+- [ ] Rodar numa VPS pequena, ligada 24h: hoje o monitor só cobre os períodos em que a
+      máquina local está ligada, e o relatório das 08:00 depende disso.
 - [ ] Error Workflow global.
 - [ ] Se um serviço ficar indisponível por mais de N minutos seguidos, reenviar o alerta
       (hoje ele avisa uma vez e só avisa de novo quando o serviço volta).

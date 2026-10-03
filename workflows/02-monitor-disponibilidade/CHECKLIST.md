@@ -3,9 +3,8 @@
 Mesmo formato do workflow 01: ordem pensada para nunca ficar travado esperando outra
 coisa, e "O que já quebrou" alimentado na hora, não reconstruído de memória depois.
 
-**Onde eu parei:** etapa 5 — workflow ativo e rodando sozinho desde 24/09/2026 ~19:49. Faltam
-os prints em `assets/` e deixar passar 24h (até ~25/09 19:49) antes do merge, para o relatório
-diário disparar pelo menos uma vez sem intervenção
+**Onde eu parei:** etapa 5 — README com Resultado real e export revisado (03/10/2026). Prints do canvas e do
+Discord já em `assets/`. Falta só o merge na `main` (manual, pelo Pedro)
 
 ---
 
@@ -95,16 +94,20 @@ Os passos completos de cada caso estão no [README](README.md), seção *Como te
 
 ## Etapa 5 — fechar o workflow
 
-- [ ] Preencher no README: **Resultado**, depois de rodar alguns dias em produção
-- [ ] Print do canvas com os dois ramos, em `assets/`
-- [ ] Print do alerta e do relatório diário no Discord, em `assets/`
-- [ ] Revisar o export: nenhum ID, e-mail, token ou webhook do Discord dentro de nó
+- [x] Preencher no README: **Resultado** — números do banco, sem arredondar a favor (as 2 falhas
+      do GitHub são a queda simulada, não queda real; cobertura ~28h, não 9 dias)
+- [x] Print do canvas com os dois ramos, em `assets/fluxo.jpg`
+- [x] Print do alerta e do relatório diário no Discord, em `assets/alertas.png` (sem webhook,
+      e-mail ou nome de servidor visíveis; os relatórios de 30/09 no print são execuções manuais)
+- [x] Revisar o export: 28 nós, nenhuma credencial embutida, nenhum token ou webhook do Discord;
+      os únicos UUIDs são os IDs sintéticos dos nós
 - [x] Ativar o workflow — `n8n publish:workflow` + restart do container, confirmado no
       banco (`active: true`) e no log de boot (`Start Active Workflows:`) em 24/09/2026 ~19:49
 - [x] Deixar rodar sozinho por um período — 81 execuções automáticas seguidas, todas
       `success`, entre 19:50 e 23:30 de 24/09, sem nenhuma intervenção manual
-- [ ] Confirmar que o relatório das 08:00 disparou pelo menos uma vez (Pedro vai desligar o
-      computador antes das 08:00; conferir na próxima sessão)
+- [x] Relatório diário disparado pelo agendamento, sem clique: execução 406, 03/10 14:30 (cron
+      trocado só para o teste e restaurado para 08:00, conferido no banco). O horário real das
+      08:00 segue não exercitado: a máquina estava desligada em todas as 08:00 do período
 - [ ] Merge de `feat/02-monitor-disponibilidade` na `main` (manual, pelo Pedro)
 
 ---
@@ -123,6 +126,7 @@ n8n veio antes de escrever o arquivo.
 | 4 | O insert devolve a linha gravada (`RETURNING *`), não o item | Achado ao investigar o erro acima: os IF depois do insert nunca veriam `mudou_estado`, e **nenhum alerta sairia**, sem erro | Log e alerta viraram ramos paralelos a partir de *Montar registro da checagem* |
 | 3 | Na importação, o n8n exportou um workflow vazio por cima do `workflow.json` | Arquivo com `"name": "My workflow"` e 0 nós | *Import from File* e *Download* ficam no mesmo menu `⋯`. Arquivo restaurado com `git checkout` |
 | 0 | HTTP Request não deixa trocar de credencial por item | Um único nó com lista de 4 serviços não funcionaria para os 2 que precisam de autenticação | Desenho mudou para 4 nós HTTP Request separados, cada um com sua própria autenticação fixa, unidos depois por um nó Merge |
+| 5 | O relatório das 08:00 não disparou em nenhum dia | Zero execuções perto das 08:00 em 9 dias, sem nenhum erro | Não era bug: agendamento só roda com a máquina ligada, e ela estava desligada nas 08:00. Gatilho provado trocando o cron por alguns minutos; fica o limite documentado e a VPS como próximo passo |
 
 ## Onde isso provavelmente vai quebrar
 

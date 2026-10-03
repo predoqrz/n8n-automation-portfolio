@@ -233,6 +233,8 @@ mandar para o Discord.
 
 ![Alertas de queda e recuperação e relatório diário no Discord](assets/alertas.png)
 
+![Relatório diário das 14:30 de 03/10, disparado pelo agendamento (execução 406)](assets/relatorio-agendado.png)
+
 Números do banco, de 24/09 a 03/10/2026, com o workflow ativo no Docker local:
 
 | Serviço | Checagens | Falhas | Disponibilidade | Tempo médio |

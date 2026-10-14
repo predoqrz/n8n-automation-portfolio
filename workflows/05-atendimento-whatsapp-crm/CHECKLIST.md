@@ -76,7 +76,7 @@ da tabela do workflow. Faltam os prints e o README final
 - [ ] Mensagem repetida (reenvio de webhook) → não gera segunda resposta (provado no SQL;
       falta provar ponta a ponta)
 - [x] Pedido de orçamento qualificado → "Aguardando humano" no Monday, e a mensagem seguinte não recebe resposta da IA
-- [x] Prompt: uma pergunta por mensagem; nome do lead é o da pessoa, não o da empresa (republicado; falta reconferir numa conversa)
+- [x] Prompt: uma pergunta por mensagem, só qualifica com os 4 dados, nome do lead é o da pessoa — 4 cenários simulados
 
 ---
 
@@ -94,3 +94,4 @@ da tabela do workflow. Faltam os prints e o README final
 | 6 | Mensagem chegou durante a republicação do workflow | `Active version not found` — mensagem perdida, lead não criado | Janela de segundos a cada republicação. Limite conhecido, não bug |
 | 6 | "Não salvar execuções" não apagava na hora | 45 execuções "running" com o corpo do webhook (mensagens, inclusive de grupos) | Lido no código do n8n: com a limpeza automática ligada, ele só marca para apagar no próximo ciclo. `EXECUTIONS_DATA_PRUNE=false` faz apagar na hora; provado com 0 execuções no banco depois de chamadas reais e simuladas |
 | 6 | Parser estruturado do agente + modo JSON do modelo | Resposta certa recusada: às vezes o invólucro vinha vazio (o agente alternava entre texto e chamada de ferramenta), às vezes "Não qualificado" (um status) no campo de intenção | Parser do agente removido. O modelo continua obrigado a JSON, e o nó *Preparar resposta* valida: campo fora da lista vira valor seguro, JSON ilegível vira passagem para humano. Testado em 4 casos fora do n8n e reproduzido com mensagem simulada |
+| 6 | Prompt com regras soltas (gpt-4o-mini) | Três ou quatro perguntas na mesma mensagem; lead qualificado sem o nome da pessoa; nome da empresa gravado como nome; emoji sem o cliente usar | Roteiro em ordem (nome, empresa, tamanho, necessidade), campo `dados_coletados` na saída para o modelo acompanhar o que já sabe, exemplo de conversa e temperatura 0,2. Validado com simulador próprio (número fictício, nada chega no WhatsApp) em 4 cenários |

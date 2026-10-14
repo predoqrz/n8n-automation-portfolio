@@ -3,9 +3,8 @@
 Mesmo formato dos workflows 01 e 02: ordem pensada para nunca ficar travado esperando
 outra coisa, e "O que já quebrou" alimentado na hora.
 
-**Onde eu parei:** etapa 6 — fluxo completo de ponta a ponta (13/10/2026): WhatsApp → IA com
-memória → resposta → lead no Monday → passagem para humano. Nada do WhatsApp fica em disco fora
-da tabela do workflow. Faltam os prints e o README final
+**Onde eu parei:** concluído (13/10/2026) — fluxo completo de ponta a ponta, prints em `assets/`,
+README fechado. Falta só o merge na `main` (manual, pelo Pedro)
 
 ---
 

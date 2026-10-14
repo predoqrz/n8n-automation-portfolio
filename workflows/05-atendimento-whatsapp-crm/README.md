@@ -1,6 +1,6 @@
 # 05 — Atendimento humanizado no WhatsApp com CRM
 
-**Status:** 🚧 Em construção
+**Status:** ✅ Concluído
 **Integrações:** WhatsApp (via Evolution API, self-hosted) · OpenAI · Monday.com · PostgreSQL
 **Competências demonstradas:** webhook de canal externo, agente de IA com memória de
 conversa e *tool calling*, integração com CRM via API, design de automação com limite
@@ -63,8 +63,25 @@ pessoal — ver a decisão sobre isso abaixo.
 
 ## Os nós, em ordem
 
-*A preencher durante a construção, conforme os nós forem desenhados e testados —
-mesmo formato do workflow 01/02.*
+| # | Nó | Tipo | O que faz |
+|---|----|------|-----------|
+| 1 | Webhook · Evolution API | Webhook | Recebe cada mensagem. Exige o cabeçalho `x-webhook-secret`; sem ele, 403. |
+| 2 | Configuração | Edit Fields (Set) | URL da Evolution, instância, board do Monday, modo de teste e idade máxima da mensagem. |
+| 3 | Normalizar mensagem | Code | Descarta grupo, status, mídia, mensagem antiga (sincronização de histórico) e o que o próprio número enviou. Sempre diz o motivo. |
+| 4 | Atender? | IF | Segue só o que passou no filtro. |
+| 5 | Verificar contato e registrar | Postgres | Uma consulta: confere a lista, grava a mensagem com trava de idempotência, lê a passagem para humano. Sempre devolve uma linha. |
+| 6 | Decidir se responde | Code | Fora da lista, repetida ou com humano assumindo: não responde. |
+| 7 | Responder? | IF | — |
+| 8 | Agente de atendimento | AI Agent | gpt-4o-mini, modo JSON, temperatura 0,2, com memória da conversa por número (Postgres). |
+| 9 | Preparar resposta | Code | Valida a saída da IA (valor fora da lista vira padrão seguro; JSON ilegível vira passagem para humano), calcula a pausa de digitação e monta as colunas do Monday. |
+| 10 | Registrar resposta | Postgres | Grava resposta e intenção; se precisar de humano, pausa o contato. |
+| 11 | Enviar no WhatsApp (com digitação) | HTTP Request | `sendText` da Evolution com `delay`: mostra "digitando…" e só então envia. |
+| 12 | Lead já existe no Monday? | IF | Pelo ID guardado no contato. |
+| 13 | Atualizar lead no Monday | HTTP Request | GraphQL `change_multiple_column_values`. |
+| 14 | Item ainda existe no Monday? | IF | O GraphQL responde erro com HTTP 200; se a atualização foi recusada (item excluído), recria. |
+| 15 | Criar lead no Monday | HTTP Request | GraphQL `create_item`. |
+| 16 | Conferir criação no Monday | Code | Transforma erro escondido no corpo em erro de verdade. |
+| 17 | Guardar ID do lead | Postgres | Salva o ID do item no contato. |
 
 ## Decisões técnicas
 
@@ -116,9 +133,36 @@ mesmo formato do workflow 01/02.*
   atendimento. Sem o cabeçalho `x-webhook-secret`, o n8n responde 403 — ninguém de fora
   consegue simular uma mensagem e fazer a IA responder em nome do número.
 
+## O que não funcionou
+
+A tabela completa, com sintoma e solução de cada item, está no [CHECKLIST](CHECKLIST.md). Os
+três que mais ensinaram:
+
+- **"Não guardar nada" não era o padrão de nenhuma peça.** Ao parear o WhatsApp, a Evolution
+  sincronizou e guardou 114 mil mensagens e 2.861 contatos; o container imprimia o texto de
+  cada mensagem no log; e o n8n, mesmo configurado para não salvar execuções, só *marcava*
+  as execuções para apagar num ciclo posterior — lido no código-fonte do n8n e provado com 45
+  execuções "presas" com o corpo das mensagens. Foram quatro ajustes até o banco ficar com
+  zero execuções depois de chamadas reais.
+- **O parser estruturado recusava respostas certas.** O agente alternava entre devolver texto
+  e "chamar uma ferramenta" de formato, e às vezes o invólucro vinha vazio; outras vezes, um
+  status no campo de intenção. A validação saiu da IA e foi para um nó Code.
+- **Erro com cara de sucesso, de novo.** Um lead excluído pela interface do Monday fez o
+  workflow parar de atualizar o CRM com a execução verde: o GraphQL responde erro com HTTP 200.
+  É a terceira vez no portfólio (workflow 01: `output` vazio; workflow 02: `RETURNING *`)
+  que a falha mais perigosa é a que não aparece.
+
 ## Tratamento de erro
 
-*A preencher durante a construção.*
+| Falha | O que acontece |
+|---|---|
+| Webhook chamado sem o segredo | 403; nada é processado. |
+| Mensagem de grupo, mídia, antiga ou de número fora da lista | Ignorada sem gravar nada. |
+| Webhook reentregue (mesma mensagem duas vezes) | A chave única em `wa_message_id` barra a segunda; não há segunda resposta. |
+| IA devolve JSON ilegível ou campo fora da lista | Campo inválido vira valor seguro; JSON ilegível vira passagem para humano com mensagem padrão — o cliente nunca fica sem resposta. |
+| Lead excluído no Monday | O workflow recria o lead e guarda o ID novo. |
+| Monday recusa a criação | O nó *Conferir criação no Monday* para a execução com erro explícito. A resposta ao cliente já foi enviada antes. |
+| Mensagem chega durante uma republicação do workflow | Perdida (`Active version not found`). Janela de segundos; limite conhecido. |
 
 ## Pré-requisitos
 
@@ -152,21 +196,61 @@ node workflows/05-atendimento-whatsapp-crm/scripts/monday-board.mjs --conferir
 
 ### 4. Credenciais no n8n
 
-OpenAI (já existe, do workflow 01), Postgres (já existe), Monday.com API (token do
-`.env`), e a chave da Evolution API usada nos nós HTTP Request.
+OpenAI e Postgres (os mesmos dos workflows anteriores), **Monday.com account** (token do
+`.env`), **Evolution API** (Header Auth, `apikey`) e **Webhook Evolution** (Header Auth,
+`x-webhook-secret`). As três novas podem ser criadas pela CLI do n8n
+(`n8n import:credentials`), lendo os segredos do `.env` — sem copiar e colar.
+
+### 5. Lista de atendimento e webhook
+
+```bash
+docker cp workflows/05-atendimento-whatsapp-crm/sql/002-atendimento-contatos.sql n8n-postgres:/tmp/002-atendimento-contatos.sql
+docker exec n8n-postgres psql -U n8n -d n8n -f /tmp/002-atendimento-contatos.sql
+```
+
+Depois, `POST /webhook/set/{instância}` na Evolution apontando para
+`http://n8n:5678/webhook/atendimento-whatsapp`, só com o evento `MESSAGES_UPSERT` e o
+cabeçalho `x-webhook-secret`.
 
 ## Como testar
 
-*A preencher durante a construção.*
+Com um número só (o conectado), ligue `modo_teste_conversa_propria` no nó *Configuração* e
+coloque o próprio número na lista. A conversa **"Você"** do WhatsApp vira o canal de teste: só
+mensagens digitadas no celular contam — a resposta da IA sai com origem "web", e é essa
+diferença que impede a IA de responder a si mesma. Nessa conversa o "digitando…" não aparece.
+
+1. **Qualificação:** "preciso de um orçamento de suporte de TI" → a IA pergunta nome, empresa,
+   tamanho e necessidade, uma coisa por vez, e só então passa para humano.
+2. **Silêncio depois da passagem:** a mensagem seguinte é registrada e não recebe resposta.
+3. **Monday:** o lead aparece no grupo *Leads* e é atualizado a cada mensagem.
+4. **Lead excluído:** exclua o item no Monday e mande outra mensagem (depois de liberar o
+   contato) → o lead é recriado.
+5. **Fora do escopo:** "vocês fazem site?" → recusa gentil, sem chamar humano.
+
+Para iterar no prompt sem mandar nada para o WhatsApp, as conversas foram simuladas direto no
+webhook com um número fictício na lista: o envio falha de propósito, mas a resposta da IA fica
+registrada antes do envio.
 
 ## Resultado
 
-*A preencher.*
+![Conversa de atendimento no WhatsApp](assets/conversa-whatsapp.png)
+
+![Lead criado e atualizado no Monday](assets/board-monday.png)
+
+![Canvas do workflow no n8n](assets/canvas.png)
+
+- Atendimento completo de ponta a ponta: pergunta, qualificação em quatro passos, passagem
+  para humano e silêncio depois dela; lead criado, atualizado e recriado no Monday.
+- **Zero execuções guardadas** no n8n depois de dezenas de mensagens reais e simuladas, e
+  nenhuma mensagem pessoal guardada na Evolution — só as conversas de números da lista, na
+  tabela do próprio workflow.
+- Prompt validado em quatro cenários simulados (roteiro passo a passo, tudo de uma vez, falta
+  só o nome, fora do escopo).
 
 ## Próximos passos
 
-- [ ] Desenhar e testar o workflow completo no n8n.
-- [ ] Definir a persona/tom do agente (nome, escopo do que ele pode e não pode responder).
+- [ ] Liberar o contato de volta para a IA pelo próprio Monday (hoje é um `UPDATE` no banco).
+- [ ] Error Workflow global, como nos workflows 01 e 02.
 - [ ] Considerar um número de WhatsApp dedicado, separado do pessoal, se o projeto
       crescer além do estudo para entrevista.
 - [ ] Migrar para a API oficial da Meta se este atendimento algum dia for para produção

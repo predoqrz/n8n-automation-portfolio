@@ -1,6 +1,6 @@
 # 02 — Monitor de disponibilidade com relatório diário
 
-**Status:** ✅ Rodando
+**Status:** ✅ Concluído
 **Integrações:** HTTP Request · PostgreSQL · Discord · Notion (API, só para checagem) · OpenAI (API, só para checagem)
 **Competências demonstradas:** Schedule Trigger, HTTP Request com tratamento de erro,
 comparação de estado via banco, agregação SQL, alerta com controle de ruído

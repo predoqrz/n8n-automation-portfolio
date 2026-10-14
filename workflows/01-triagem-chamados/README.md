@@ -1,6 +1,6 @@
 # 01 — Triagem automática de chamados
 
-**Status:** ✅ Rodando
+**Status:** ✅ Concluído
 **Tempo de construção:** ~5 h registradas em commits, em 3 sessões (15 a 17/09/2026) — piso; a configuração das contas no Google e no Notion ficou fora desse relógio
 **Integrações:** Gmail · OpenAI · Notion · PostgreSQL
 **Competências demonstradas:** trigger de e-mail com filtro, LLM com saída estruturada e

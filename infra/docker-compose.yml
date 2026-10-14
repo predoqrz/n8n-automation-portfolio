@@ -44,8 +44,12 @@ services:
       GENERIC_TIMEZONE: America/Sao_Paulo
       TZ: America/Sao_Paulo
       N8N_DIAGNOSTICS_ENABLED: "false"
-      EXECUTIONS_DATA_PRUNE: "true"
-      EXECUTIONS_DATA_MAX_AGE: 168
+      # Limpeza automática desligada de propósito. Com ela ligada, uma execução que o
+      # workflow manda NÃO salvar (o workflow 05, que recebe todas as mensagens de um
+      # WhatsApp pessoal) é só marcada para apagar e fica em disco até o próximo ciclo.
+      # Desligada, o n8n apaga na hora. Custo: o histórico dos workflows que salvam
+      # execuções (01 e 02) não expira sozinho — limpar à mão quando crescer.
+      EXECUTIONS_DATA_PRUNE: "false"
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files

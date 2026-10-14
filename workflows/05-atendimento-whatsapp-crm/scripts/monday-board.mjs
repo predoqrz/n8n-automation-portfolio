@@ -33,7 +33,7 @@ const COLUNAS_SIMPLES = [
   { id: 'telefone', title: 'Telefone', column_type: 'phone' },
   { id: 'wa_id', title: 'WhatsApp ID', column_type: 'text' },
   { id: 'resumo', title: 'Resumo da conversa', column_type: 'long_text' },
-  { id: 'ultima_mensagem', title: 'Última mensagem', column_type: 'long_text' },
+  { id: 'mensagem_recente', title: 'Última mensagem', column_type: 'long_text' },
   { id: 'atualizado_em', title: 'Atualizado em', column_type: 'date' },
 ];
 
@@ -48,7 +48,7 @@ const COLUNAS_STATUS = [
       { index: 2, label: 'Aguardando humano', color: 'dark_orange' },
       { index: 3, label: 'Qualificado', color: 'done_green', is_done: true },
       { index: 4, label: 'Não qualificado', color: 'stuck_red' },
-      { index: 5, label: 'Encerrado', color: 'grey' },
+      { index: 5, label: 'Encerrado', color: 'american_gray' },
     ],
   },
   {
@@ -59,7 +59,7 @@ const COLUNAS_STATUS = [
       { index: 1, label: 'Orçamento', color: 'working_orange' },
       { index: 2, label: 'Suporte', color: 'purple' },
       { index: 3, label: 'Reclamação', color: 'stuck_red' },
-      { index: 4, label: 'Outro', color: 'grey' },
+      { index: 4, label: 'Outro', color: 'american_gray' },
     ],
   },
 ];
@@ -126,6 +126,23 @@ async function criar(env) {
   );
   const boardId = board.create_board.id;
 
+  try {
+    await criarColunas(token, boardId);
+  } catch (e) {
+    // Sem isso, cada tentativa que falha no meio deixa um board incompleto na conta
+    // (aconteceu três vezes na primeira execução). Arquivar é reversível no Monday.
+    await monday(token, 'mutation($b: ID!) { archive_board(board_id: $b) { id } }', { b: boardId }).catch(() => {});
+    console.error(`\n  Board ${boardId} incompleto foi arquivado.`);
+    throw e;
+  }
+
+  console.log(`\n  ✓ Board criado com ${COLUNAS_SIMPLES.length + COLUNAS_STATUS.length} colunas além do nome.`);
+  console.log(`    https://view.monday.com/boards/${boardId}\n`);
+  console.log('  Cole esta linha no .env:\n');
+  console.log(`      MONDAY_BOARD_ID=${boardId}\n`);
+}
+
+async function criarColunas(token, boardId) {
   for (const c of COLUNAS_SIMPLES) {
     await monday(
       token,
@@ -147,11 +164,6 @@ async function criar(env) {
     );
     console.log(`    coluna criada: ${c.title} (status, ${c.labels.length} opções)`);
   }
-
-  console.log(`\n  ✓ Board criado com ${COLUNAS_SIMPLES.length + COLUNAS_STATUS.length} colunas além do nome.`);
-  console.log(`    https://view.monday.com/boards/${boardId}\n`);
-  console.log('  Cole esta linha no .env:\n');
-  console.log(`      MONDAY_BOARD_ID=${boardId}\n`);
 }
 
 async function conferir(env) {

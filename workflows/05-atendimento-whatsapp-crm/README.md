@@ -26,20 +26,18 @@ simulada, e só passa para um humano quando decide que não deve responder sozin
 
 ```mermaid
 flowchart TD
-    A[Webhook · Evolution API] --> B{É mensagem de texto,\nde uma pessoa, não de grupo?}
-    B -->|não| Z[Ignorar]
-    B -->|sim| C[Normalizar mensagem]
-    C --> D{Já processada?}
-    D -->|sim| Z
-    D -->|não| E[Agente de IA]
+    A[Webhook · Evolution API\ncom segredo no cabeçalho] --> B{Texto, de pessoa,\nnão de grupo, recente?}
+    B -->|não| Z[Ignorar · nada gravado]
+    B -->|sim| C{Contato na lista,\nmensagem nova,\nsem humano assumindo?}
+    C -->|não| Z
+    C -->|sim| E[Agente de IA]
     E <--> F[(Memória da conversa · Postgres)]
-    E <--> G[Ferramenta: buscar/criar lead no Monday]
-    E <--> H[Ferramenta: atualizar status/resumo no Monday]
-    E --> I{Decidiu responder\nsozinho?}
-    I -->|sim| J[Simular digitação] --> K[Enviar resposta no WhatsApp]
-    I -->|não, precisa de humano| L[Marcar 'Aguardando humano' no Monday]
-    K --> M[(Registrar mensagem)]
-    L --> M
+    E --> P[Saída estruturada:\nresposta, intenção, status,\nresumo, precisa de humano?]
+    P --> R[(Registrar resposta;\nse precisa de humano, pausar o contato)]
+    R --> K[Enviar no WhatsApp\ncom 'digitando…']
+    K --> M{Lead já existe\nno Monday?}
+    M -->|sim| U[Atualizar lead]
+    M -->|não| N[Criar lead] --> G[(Guardar ID do lead)]
 ```
 
 ## Ponto de atenção — leia antes de configurar
@@ -94,10 +92,29 @@ mesmo formato do workflow 01/02.*
   "aquilo que você falou há dois minutos". A memória é indexada pelo número de WhatsApp
   (`wa_id`), então cada contato tem a própria linha do tempo.
 
-- **Por que *tool calling* para o Monday, e não um nó fixo depois da resposta da IA:** o
-  agente decide sozinho quando vale a pena consultar ou atualizar o lead — por exemplo,
-  não teria por que gravar o CRM a cada "oi" trocado, só quando algo relevante muda. Um
-  nó fixo gravaria sempre, mesmo sem necessidade.
+- **Por que a IA decide o quê, e nós fixos decidem o como, no Monday:** o plano inicial era
+  dar ao agente ferramentas para gravar no CRM (*tool calling*). Mudou antes de construir:
+  as colunas do Monday exigem JSON em formatos específicos por tipo (telefone, data,
+  status), e um erro de formato do modelo viraria lead gravado errado sem aviso. O agente
+  devolve intenção, status, resumo e resposta numa saída estruturada; nós fixos montam o
+  JSON e gravam. É o mesmo princípio do workflow 01: a IA classifica, mas não executa sozinha.
+
+- **Por que uma lista de contatos que podem ser atendidos:** o número conectado é pessoal.
+  Sem lista, a IA responderia família e amigos. Só números em
+  `portfolio.atendimento_contatos` são atendidos — e a mensagem de quem não está lá não é
+  gravada em lugar nenhum.
+
+- **Por que nada do WhatsApp fica guardado fora da tabela do workflow:** a Evolution recebe
+  *todas* as mensagens do número conectado. Na configuração padrão, ela guardou 114 mil
+  mensagens e 2.861 contatos no primeiro pareamento, imprimiu o conteúdo das mensagens no log
+  do container, e o n8n guardava cada mensagem recebida no histórico de execuções. Os três
+  foram desligados (armazenamento da Evolution, log do container e salvamento de execuções do
+  workflow) e o que existia foi apagado. Para diagnosticar um erro, o salvamento é ligado
+  por alguns minutos e desligado de novo.
+
+- **Por que o webhook tem um segredo no cabeçalho:** a URL do webhook é a porta de entrada do
+  atendimento. Sem o cabeçalho `x-webhook-secret`, o n8n responde 403 — ninguém de fora
+  consegue simular uma mensagem e fazer a IA responder em nome do número.
 
 ## Tratamento de erro
 

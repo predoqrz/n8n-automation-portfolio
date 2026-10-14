@@ -3,46 +3,35 @@
 Mesmo formato dos workflows 01 e 02: ordem pensada para nunca ficar travado esperando
 outra coisa, e "O que já quebrou" alimentado na hora.
 
-**Onde eu parei:** etapa 0 — infra preparada no repositório, esperando o Docker voltar
+**Onde eu parei:** etapa 5 — atendimento respondendo pelo WhatsApp de ponta a ponta (13/10/2026),
+com memória da conversa. Falta o Monday: token de API, board e religar os 4 nós do CRM
 
 ---
 
 ## Etapa 0 — preparado no repositório ✅
 
-- [x] Serviço `evolution` acrescentado ao `infra/docker-compose.yml` (imagem, variáveis
-      e endpoints confirmados na documentação oficial antes de escrever, não de memória)
-- [x] Variáveis novas no `.env.example`: `EVOLUTION_API_KEY`, `MONDAY_API_TOKEN`,
-      `MONDAY_BOARD_ID`
-- [x] `scripts/monday-board.mjs` — cria e confere o board via API, mesmo padrão do
-      `notion-database.mjs` do workflow 01
-- [x] `sql/001-atendimento-mensagens.sql` — tabela de log e idempotência
-- [x] README com o problema, a solução, o ponto de atenção sobre risco do WhatsApp
-      não-oficial, e as decisões já tomadas
-
-Nada disso rodou ainda. É infraestrutura escrita, não testada.
+- [x] Serviço `evolution` no `infra/docker-compose.yml` (imagem, variáveis e endpoints
+      confirmados na documentação e no código-fonte da versão rodando, não de memória)
+- [x] Variáveis no `.env.example`
+- [x] `scripts/monday-board.mjs` — cria e confere o board via API
+- [x] `sql/001-atendimento-mensagens.sql` — log e idempotência
+- [x] `sql/002-atendimento-contatos.sql` — lista de atendimento e passagem para humano
+- [x] README com o problema, a solução e o ponto de atenção sobre risco
 
 ---
 
-## Etapa 1 — Docker e Evolution API
+## Etapa 1 — Docker e Evolution API ✅
 
-- [ ] Abrir o Docker Desktop
-- [ ] Gerar a chave: `openssl rand -hex 24` → colar em `EVOLUTION_API_KEY` no `.env`
-- [ ] Criar o banco da Evolution (uma vez): `CREATE DATABASE evolution;`
-- [ ] Subir o serviço: `docker compose -f infra/docker-compose.yml --env-file .env up -d evolution`
-- [ ] Conferir: `curl http://localhost:8080` deve responder algo (não erro de conexão)
+- [x] Chave gerada e gravada no `.env` (sem passar pelo chat)
+- [x] Banco `evolution` criado; Evolution API v2.3.7 no ar
+- [x] Sem `apikey` responde 401, com `apikey` responde 200
 
 ---
 
-## Etapa 2 — parear o WhatsApp
+## Etapa 2 — parear o WhatsApp ✅
 
-- [ ] Criar a instância via API (`POST /instance/create`)
-- [ ] Buscar o QR Code (`GET /instance/connect/{instance}`)
-- [ ] Escanear com o WhatsApp do celular (**Aparelhos conectados** → **Conectar um
-      aparelho**)
-- [ ] Confirmar que a instância ficou com status `open`/conectado
-
-> Fazer isso com o app do WhatsApp aberto no celular, wi-fi estável. O QR expira em
-> segundos; se demorar para escanear, é só pedir um novo.
+- [x] Instância `atendimento` criada, QR escaneado, estado `open`
+- [x] Número do dono na lista de atendimento (lido da própria Evolution, nunca no repositório)
 
 ---
 
@@ -53,33 +42,40 @@ Nada disso rodou ainda. É infraestrutura escrita, não testada.
 - [ ] `node workflows/05-atendimento-whatsapp-crm/scripts/monday-board.mjs`
 - [ ] Colar o `MONDAY_BOARD_ID` que o script imprimir, no `.env`
 - [ ] `node workflows/05-atendimento-whatsapp-crm/scripts/monday-board.mjs --conferir`
+- [ ] Credencial Monday.com no n8n e religar os 4 nós do CRM
 
 ---
 
-## Etapa 4 — configurar o webhook da Evolution → n8n
+## Etapa 4 — webhook da Evolution → n8n ✅
 
-- [ ] `POST /webhook/set/{instance}` apontando para a URL do webhook do n8n
-- [ ] Habilitar só o evento `MESSAGES_UPSERT`
+- [x] `POST /webhook/set/atendimento` → `http://n8n:5678/webhook/atendimento-whatsapp`,
+      só `MESSAGES_UPSERT`
+- [x] Cabeçalho secreto `x-webhook-secret`: sem ele ou com valor errado, o n8n responde 403
 
 ---
 
 ## Etapa 5 — montar o workflow no n8n
 
-- [ ] Desenhar os nós (será feito junto, como os workflows 01 e 02)
-- [ ] Credenciais: OpenAI (existente), Postgres (existente), Monday.com API,
-      cabeçalho `apikey` da Evolution nos nós HTTP Request
+- [x] 20 nós, gerados por script (sem escape manual de JavaScript), estrutura validada
+- [x] Versões dos nós conferidas nas definições dentro do próprio n8n antes de escrever
+- [x] As 3 queries SQL testadas em 6 cenários, numa transação desfeita
+- [x] Credenciais Evolution e Webhook criadas pela CLI, com os segredos lidos do `.env`
+- [x] Privacidade: nada do WhatsApp pessoal fica guardado fora da tabela do workflow
+- [ ] Monday ligado (depende da etapa 3)
 
 ---
 
 ## Etapa 6 — testes
 
-- [ ] Mensagem simples → resposta humanizada, com pausa de digitação
-- [ ] Segunda mensagem do mesmo número → o agente lembra o que foi dito antes
+- [x] Mensagem simples → resposta pelo WhatsApp (conversa "Você", modo de teste)
+- [x] Segunda mensagem do mesmo número → o agente lembra o que foi dito antes
+- [x] Mensagem de grupo, mídia, mensagem antiga → ignoradas, sem gravar nada
+- [x] Webhook sem segredo → 403
 - [ ] Lead novo → aparece no Monday, com telefone e `wa_id` preenchidos
-- [ ] Mensagem repetida (reenvio de webhook) → não gera segunda resposta
-- [ ] Mensagem de grupo → ignorada
-- [ ] Situação que o agente não deveria resolver sozinho → vai para "Aguardando humano",
-      sem resposta automática incorreta
+- [ ] Mensagem repetida (reenvio de webhook) → não gera segunda resposta (provado no SQL;
+      falta provar ponta a ponta)
+- [ ] Pedido de orçamento qualificado → "Aguardando humano", e a IA para de responder
+- [ ] Ajuste de prompt: uma pergunta por vez (na 2ª resposta ela fez duas)
 
 ---
 
@@ -87,4 +83,9 @@ Nada disso rodou ainda. É infraestrutura escrita, não testada.
 
 | Etapa | O que | Sintoma | Solução |
 |---|---|---|---|
-| 0 | — | — | — |
+| 1 | Variáveis do workflow 05 só existiam no `.env.example`, não no `.env` | A gravação da chave não achou a linha; o comando seguinte subiu o container **sem chave** | Container parado na hora, variáveis acrescentadas, container recriado e 401/200 conferidos |
+| 5 | Teste do SQL com `currval` depois de um `ON CONFLICT DO NOTHING` | Atualização em 0 linhas | Não era bug do workflow: o insert recusado também consome a sequência. Teste refeito com sequência fixa |
+| 6 | Nós do Monday sem credencial | **Toda** execução falhava no início, até as que só deviam ignorar mensagem de grupo | O n8n confere as credenciais de todos os nós antes de rodar o primeiro. Nós do Monday desligados até o token existir |
+| 6 | Agente com parser estruturado e sem ferramentas | Resposta boa, mas em texto puro: *Model output doesn't fit required format* | Modo JSON no modelo (`json_object`) + formato explícito no prompt |
+| 6 | Privacidade: o número é pessoal | Evolution guardou 114 mil mensagens, 2.861 contatos e 898 conversas; o log do container e o histórico do n8n também tinham conteúdo de conversas pessoais | Armazenamento de mensagens desligado na Evolution, log do container desligado, workflow sem salvar execuções; tudo o que já existia, apagado |
+| 6 | Execução salva para diagnóstico trazia o cabeçalho do webhook | O segredo passou pela conversa de diagnóstico | Segredo trocado; o antigo agora recebe 403 |

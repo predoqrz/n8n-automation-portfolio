@@ -1,0 +1,692 @@
+{
+  "name": "05 · Atendimento WhatsApp + CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "atendimento-whatsapp",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "b5000000-0000-4000-8000-000000000001",
+      "name": "Webhook · Evolution API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "b5a7e0a1-5c3d-4e2f-9a10-0d5a7e0a1f05",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Webhook Evolution"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg1",
+              "name": "evolution_url",
+              "value": "http://evolution:8080",
+              "type": "string"
+            },
+            {
+              "id": "cfg2",
+              "name": "instancia",
+              "value": "atendimento",
+              "type": "string"
+            },
+            {
+              "id": "cfg3",
+              "name": "monday_board_id",
+              "value": "COLE_AQUI_O_MONDAY_BOARD_ID",
+              "type": "string"
+            },
+            {
+              "id": "cfg4",
+              "name": "modo_teste_conversa_propria",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "cfg5",
+              "name": "idade_maxima_s",
+              "value": 300,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b5000000-0000-4000-8000-000000000002",
+      "name": "Configuração",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Decide se a mensagem que chegou merece atenção, antes de qualquer consulta ao banco.\n// Toda saída tem o campo \"atender\" e, quando é false, o \"motivo\" — nada some sem explicação.\nconst cfg = $input.first().json;\nconst body = $('Webhook · Evolution API').first().json.body || {};\nconst d = body.data || {};\nconst key = d.key || {};\nconst jid = key.remoteJid || '';\nconst texto = (d.message?.conversation || '').trim();\nconst idadeS = d.messageTimestamp ? Math.round(Date.now() / 1000 - Number(d.messageTimestamp)) : null;\nconst conversaPropria = !!body.sender && jid === body.sender;\n\nlet motivo = null;\nif (body.event !== 'messages.upsert') motivo = 'evento que não é mensagem nova';\nelse if (jid.endsWith('@g.us')) motivo = 'mensagem de grupo';\nelse if (jid.endsWith('@broadcast')) motivo = 'status/lista de transmissão';\nelse if (jid.endsWith('@lid')) motivo = 'contato sem número resolvido (@lid)';\nelse if (!texto) motivo = 'sem texto (mídia, figurinha, áudio)';\nelse if (idadeS !== null && idadeS > cfg.idade_maxima_s) motivo = 'mensagem antiga (' + idadeS + 's) — sincronização de histórico';\nelse if (key.fromMe) {\n  // Mensagem enviada pelo próprio número. Só vale no modo de teste, na conversa\n  // \"Você\", e só se foi digitada no celular. A resposta da IA sai pela Evolution\n  // com origem \"web\" — é essa diferença que impede a IA de responder a si mesma.\n  const doCelular = ['android', 'ios'].includes(d.source);\n  if (!(cfg.modo_teste_conversa_propria && conversaPropria && doCelular)) motivo = 'enviada pelo próprio número';\n}\n\nreturn [{\n  json: {\n    atender: motivo === null,\n    motivo,\n    wa_message_id: key.id || null,\n    wa_id: jid.split('@')[0],\n    nome_contato: d.pushName || null,\n    texto,\n    conversa_propria: conversaPropria,\n    origem: d.source || null,\n  },\n}];"
+      },
+      "id": "b5000000-0000-4000-8000-000000000003",
+      "name": "Normalizar mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c3",
+              "leftValue": "={{ $json.atender }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "b5000000-0000-4000-8000-000000000004",
+      "name": "Atender?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b5000000-0000-4000-8000-000000000005",
+      "name": "Ignorar",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        880,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Uma consulta, sempre exatamente uma linha de resposta.\n-- 1) Só grava a mensagem se o contato está na lista (mensagem de fora não fica em lugar nenhum).\n-- 2) ON CONFLICT na chave única: webhook reentregue não gera segunda resposta.\nWITH contato AS (\n    SELECT wa_id, humano_desde, monday_item_id\n      FROM portfolio.atendimento_contatos\n     WHERE wa_id = $2 AND ativo\n), novo AS (\n    INSERT INTO portfolio.atendimento_mensagens (wa_message_id, wa_id, nome_contato, texto_recebido)\n    SELECT $1, $2, $3, $4 FROM contato\n    ON CONFLICT (wa_message_id) DO NOTHING\n    RETURNING id\n)\nSELECT (SELECT id FROM novo)                      AS registro_id,\n       EXISTS (SELECT 1 FROM contato)             AS permitido,\n       (SELECT humano_desde FROM contato)         AS humano_desde,\n       (SELECT monday_item_id FROM contato)       AS monday_item_id;",
+        "options": {
+          "queryReplacement": "={{ [ $json.wa_message_id, $json.wa_id, $json.nome_contato, $json.texto ] }}"
+        }
+      },
+      "id": "b5000000-0000-4000-8000-000000000006",
+      "name": "Verificar contato e registrar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        880,
+        280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Junta o resultado do banco com a mensagem e decide se a IA responde.\n// A consulta anterior sempre devolve exatamente uma linha (ver o SQL), então\n// \"nenhuma linha\" nunca acontece aqui — a falha silenciosa do workflow 01 não se repete.\nconst msg = $('Normalizar mensagem').first().json;\nconst r = $input.first().json;\n\nlet motivo = null;\nif (!r.permitido) motivo = 'contato fora da lista de atendimento';\nelse if (!r.registro_id) motivo = 'mensagem repetida (webhook reentregue)';\nelse if (r.humano_desde) motivo = 'conversa com humano desde ' + r.humano_desde;\n\nreturn [{ json: { ...msg, registro_id: r.registro_id, monday_item_id: r.monday_item_id, responder: motivo === null, motivo } }];"
+      },
+      "id": "b5000000-0000-4000-8000-000000000007",
+      "name": "Decidir se responde",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c7",
+              "leftValue": "={{ $json.responder }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "b5000000-0000-4000-8000-000000000008",
+      "name": "Responder?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        280
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b5000000-0000-4000-8000-000000000009",
+      "name": "Não responder",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.texto }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Você é a Lia, atendente da Nexa TI pelo WhatsApp.\n\n## A empresa (fictícia)\nA Nexa TI presta suporte de TI para pequenas empresas em São Paulo:\n- suporte remoto e presencial (computadores lentos, impressora, e-mail, Office);\n- redes e Wi-Fi do escritório;\n- backup e recuperação de arquivos;\n- contrato mensal de suporte (atendimento ilimitado em horário comercial).\nHorário: segunda a sexta, 8h às 18h. Atendimento presencial só na Grande São Paulo.\n\n## Como você escreve\n- Mensagens curtas, como uma pessoa no WhatsApp: no máximo 3 frases, sem listas, sem markdown, sem negrito.\n- Uma pergunta por vez. Use o nome da pessoa quando souber.\n- Português do Brasil, tom cordial e direto. No máximo um emoji, e só se a pessoa usar também.\n- Se perguntarem se você é um robô, diga a verdade: é a assistente virtual da Nexa TI, e uma pessoa da equipe pode assumir quando precisar.\n\n## O que você faz\n1. Entende o que a pessoa precisa e responde dúvidas gerais sobre os serviços acima.\n2. Para orçamento, descobre: nome, empresa, quantos computadores/pessoas e qual o problema ou serviço. Não invente preço, prazo nem disponibilidade — isso é com a equipe.\n3. Quando tiver nome, empresa e necessidade claros num pedido de orçamento, o lead está \"Qualificado\": agradeça e diga que alguém da equipe vai continuar por aqui — e marque precisa_humano = true.\n\n## Quando passar para humano (precisa_humano = true)\n- lead qualificado para orçamento (item 3 acima);\n- reclamação, cobrança, cancelamento ou cliente irritado;\n- a pessoa pede para falar com alguém;\n- pergunta que você não sabe responder com segurança, ou fora do escopo da Nexa TI.\nNesses casos, \"resposta\" é uma mensagem curta avisando que alguém da equipe vai continuar a conversa por aqui. Nunca prometa prazo.\n\n## Campos da saída\n- resposta: o texto que vai para o cliente.\n- precisa_humano / motivo_humano: conforme as regras acima (motivo vazio se não precisar).\n- intencao: Dúvida, Orçamento, Suporte, Reclamação ou Outro.\n- status: Em conversa, Qualificado, Não qualificado (claramente fora do perfil, ex.: pessoa física fora de SP pedindo visita) ou Encerrado (a pessoa se despediu).\n- nome_cliente: o nome da pessoa, se ela disse; senão, vazio.\n- resumo: 1 ou 2 frases com o que se sabe do lead até agora (para a equipe ler no CRM).\n\n## Formato\nResponda SEMPRE e SOMENTE com um objeto JSON com exatamente estes campos: resposta, precisa_humano, motivo_humano, intencao, status, nome_cliente, resumo. Nada fora do JSON.",
+          "maxIterations": 3,
+          "enableStreaming": false
+        }
+      },
+      "id": "b5000000-0000-4000-8000-000000000010",
+      "name": "Agente de atendimento",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1560,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0.4,
+          "timeout": 30000,
+          "responseFormat": "json_object"
+        }
+      },
+      "id": "b5000000-0000-4000-8000-000000000011",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1480,
+        480
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Decidir se responde').first().json.wa_id }}",
+        "tableName": "atendimento_memoria",
+        "contextWindowLength": 10
+      },
+      "id": "b5000000-0000-4000-8000-000000000012",
+      "name": "Memória da conversa",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        1620,
+        480
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"resposta\": {\n      \"type\": \"string\"\n    },\n    \"precisa_humano\": {\n      \"type\": \"boolean\"\n    },\n    \"motivo_humano\": {\n      \"type\": \"string\"\n    },\n    \"intencao\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Dúvida\",\n        \"Orçamento\",\n        \"Suporte\",\n        \"Reclamação\",\n        \"Outro\"\n      ]\n    },\n    \"status\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Em conversa\",\n        \"Qualificado\",\n        \"Não qualificado\",\n        \"Encerrado\"\n      ]\n    },\n    \"nome_cliente\": {\n      \"type\": \"string\"\n    },\n    \"resumo\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"resposta\",\n    \"precisa_humano\",\n    \"motivo_humano\",\n    \"intencao\",\n    \"status\",\n    \"nome_cliente\",\n    \"resumo\"\n  ]\n}"
+      },
+      "id": "b5000000-0000-4000-8000-000000000013",
+      "name": "Formato da resposta",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1760,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Transforma a decisão da IA no que o resto do workflow precisa: texto final,\n// pausa de digitação e os valores das colunas do Monday.\nconst cfg = $('Configuração').first().json;\nconst msg = $('Decidir se responde').first().json;\nconst ia = $input.first().json.output;\n\nconst precisaHumano = !!ia.precisa_humano;\nconst status = precisaHumano ? 'Aguardando humano' : ia.status;\nconst resposta = (ia.resposta || '').trim()\n  || 'Obrigado pela mensagem! Vou passar para alguém da equipe, que já te responde por aqui.';\n\n// Pausa proporcional ao tamanho: ~45 ms por caractere, entre 2 e 12 segundos.\n// Responder em 200 ms um texto de três linhas é o sinal mais claro de robô.\nconst delay = Math.min(12000, Math.max(2000, 1500 + resposta.length * 45));\n\nconst agora = new Date().toISOString();\nconst colunas = {\n  telefone: { phone: msg.wa_id, countryShortName: 'BR' },\n  wa_id: msg.wa_id,\n  status: { label: status },\n  intencao: { label: ia.intencao },\n  resumo: { text: ia.resumo || '' },\n  ultima_mensagem: { text: msg.texto },\n  atualizado_em: { date: agora.slice(0, 10), time: agora.slice(11, 19) },\n};\nconst nomeItem = (ia.nome_cliente || msg.nome_contato || msg.wa_id).slice(0, 80);\nconst boardId = String(cfg.monday_board_id);\n\nreturn [{\n  json: {\n    ...msg,\n    resposta,\n    delay,\n    precisa_humano: precisaHumano,\n    motivo_humano: ia.motivo_humano || null,\n    intencao: ia.intencao,\n    status,\n    nome_cliente: ia.nome_cliente || '',\n    monday_criar: {\n      query: 'mutation ($board: ID!, $nome: String!, $cols: JSON!) { create_item (board_id: $board, item_name: $nome, column_values: $cols) { id } }',\n      variables: { board: boardId, nome: nomeItem, cols: JSON.stringify(colunas) },\n    },\n    monday_atualizar: {\n      query: 'mutation ($board: ID!, $item: ID!, $cols: JSON!) { change_multiple_column_values (board_id: $board, item_id: $item, column_values: $cols) { id } }',\n      variables: { board: boardId, item: String(msg.monday_item_id || ''), cols: JSON.stringify(colunas) },\n    },\n  },\n}];"
+      },
+      "id": "b5000000-0000-4000-8000-000000000014",
+      "name": "Preparar resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1960,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Grava o que foi decidido e, se for o caso, liga a passagem para humano\n-- (o workflow para de responder este contato até alguém limpar humano_desde).\nWITH msg AS (\n    UPDATE portfolio.atendimento_mensagens\n       SET intencao = $2, texto_resposta = $3, encaminhado = $4\n     WHERE id = $1\n    RETURNING wa_id\n)\nUPDATE portfolio.atendimento_contatos c\n   SET humano_desde = CASE WHEN $4 THEN now() ELSE c.humano_desde END,\n       nome = COALESCE(NULLIF($5, ''), c.nome)\n  FROM msg\n WHERE c.wa_id = msg.wa_id\nRETURNING c.wa_id;",
+        "options": {
+          "queryReplacement": "={{ [ $json.registro_id, $json.intencao, $json.resposta, $json.precisa_humano, $json.nome_cliente || '' ] }}"
+        }
+      },
+      "id": "b5000000-0000-4000-8000-000000000015",
+      "name": "Registrar resposta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2180,
+        260
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configuração').first().json.evolution_url }}/message/sendText/{{ $('Configuração').first().json.instancia }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { number: $('Preparar resposta').first().json.wa_id, text: $('Preparar resposta').first().json.resposta, delay: $('Preparar resposta').first().json.delay } }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "b5000000-0000-4000-8000-000000000016",
+      "name": "Enviar no WhatsApp (com digitação)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        260
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Evolution API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c16",
+              "leftValue": "={{ !!$('Preparar resposta').first().json.monday_item_id }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "b5000000-0000-4000-8000-000000000017",
+      "name": "Lead já existe no Monday?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2620,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.monday.com/v2",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "mondayComApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Preparar resposta').first().json.monday_atualizar }}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "b5000000-0000-4000-8000-000000000018",
+      "name": "Atualizar lead no Monday",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        160
+      ],
+      "credentials": {
+        "mondayComApi": {
+          "id": "",
+          "name": "Monday.com account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.monday.com/v2",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "mondayComApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Preparar resposta').first().json.monday_criar }}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "b5000000-0000-4000-8000-000000000019",
+      "name": "Criar lead no Monday",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        360
+      ],
+      "credentials": {
+        "mondayComApi": {
+          "id": "",
+          "name": "Monday.com account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE portfolio.atendimento_contatos\n   SET monday_item_id = $2\n WHERE wa_id = $1\nRETURNING wa_id, monday_item_id;",
+        "options": {
+          "queryReplacement": "={{ [ $('Preparar resposta').first().json.wa_id, $json.data.create_item.id ] }}"
+        }
+      },
+      "id": "b5000000-0000-4000-8000-000000000020",
+      "name": "Guardar ID do lead",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3080,
+        360
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook · Evolution API": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuração": {
+      "main": [
+        [
+          {
+            "node": "Normalizar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar mensagem": {
+      "main": [
+        [
+          {
+            "node": "Atender?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atender?": {
+      "main": [
+        [
+          {
+            "node": "Verificar contato e registrar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignorar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar contato e registrar": {
+      "main": [
+        [
+          {
+            "node": "Decidir se responde",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir se responde": {
+      "main": [
+        [
+          {
+            "node": "Responder?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder?": {
+      "main": [
+        [
+          {
+            "node": "Agente de atendimento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Não responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente de atendimento": {
+      "main": [
+        [
+          {
+            "node": "Preparar resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar resposta": {
+      "main": [
+        [
+          {
+            "node": "Registrar resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar resposta": {
+      "main": [
+        [
+          {
+            "node": "Enviar no WhatsApp (com digitação)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar no WhatsApp (com digitação)": {
+      "main": [
+        [
+          {
+            "node": "Lead já existe no Monday?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead já existe no Monday?": {
+      "main": [
+        [
+          {
+            "node": "Atualizar lead no Monday",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Criar lead no Monday",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar lead no Monday": {
+      "main": [
+        [
+          {
+            "node": "Guardar ID do lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente de atendimento",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória da conversa": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente de atendimento",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formato da resposta": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente de atendimento",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false,
+    "saveExecutionProgress": false
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

@@ -216,9 +216,9 @@
       "parameters": {
         "promptType": "define",
         "text": "={{ $json.texto }}",
-        "hasOutputParser": true,
+        "hasOutputParser": false,
         "options": {
-          "systemMessage": "Você é a Lia, atendente da Nexa TI pelo WhatsApp.\n\n## A empresa (fictícia)\nA Nexa TI presta suporte de TI para pequenas empresas em São Paulo:\n- suporte remoto e presencial (computadores lentos, impressora, e-mail, Office);\n- redes e Wi-Fi do escritório;\n- backup e recuperação de arquivos;\n- contrato mensal de suporte (atendimento ilimitado em horário comercial).\nHorário: segunda a sexta, 8h às 18h. Atendimento presencial só na Grande São Paulo.\n\n## Como você escreve\n- Mensagens curtas, como uma pessoa no WhatsApp: no máximo 3 frases, sem listas, sem markdown, sem negrito.\n- Uma pergunta por vez. Use o nome da pessoa quando souber.\n- Português do Brasil, tom cordial e direto. No máximo um emoji, e só se a pessoa usar também.\n- Se perguntarem se você é um robô, diga a verdade: é a assistente virtual da Nexa TI, e uma pessoa da equipe pode assumir quando precisar.\n\n## O que você faz\n1. Entende o que a pessoa precisa e responde dúvidas gerais sobre os serviços acima.\n2. Para orçamento, descobre, uma pergunta por mensagem: nome, empresa, quantos computadores/pessoas e qual o problema ou serviço. Não invente preço, prazo nem disponibilidade — isso é com a equipe.\n3. Quando tiver nome, empresa e necessidade claros num pedido de orçamento, o lead está \"Qualificado\": agradeça e diga que alguém da equipe vai continuar por aqui — e marque precisa_humano = true.\n\n## Quando passar para humano (precisa_humano = true)\n- lead qualificado para orçamento (item 3 acima);\n- reclamação, cobrança, cancelamento ou cliente irritado;\n- a pessoa pede para falar com alguém;\n- pergunta que você não sabe responder com segurança, ou fora do escopo da Nexa TI.\nNesses casos, \"resposta\" é uma mensagem curta avisando que alguém da equipe vai continuar a conversa por aqui. Nunca prometa prazo.\n\n## Campos da saída\n- resposta: o texto que vai para o cliente.\n- precisa_humano / motivo_humano: conforme as regras acima (motivo vazio se não precisar).\n- intencao: Dúvida, Orçamento, Suporte, Reclamação ou Outro.\n- status: Em conversa, Qualificado, Não qualificado (claramente fora do perfil, ex.: pessoa física fora de SP pedindo visita) ou Encerrado (a pessoa se despediu).\n- nome_cliente: o nome da PESSOA com quem você conversa, se ela disse (nunca o nome da empresa — a empresa vai no resumo); senão, vazio.\n- resumo: 1 ou 2 frases com o que se sabe do lead até agora (para a equipe ler no CRM).\n\n## Formato\nResponda SEMPRE e SOMENTE com um objeto JSON com exatamente estes campos: resposta, precisa_humano, motivo_humano, intencao, status, nome_cliente, resumo. Nada fora do JSON.",
+          "systemMessage": "Você é a Lia, atendente da Nexa TI pelo WhatsApp.\n\n## A empresa (fictícia)\nA Nexa TI presta suporte de TI para pequenas empresas em São Paulo:\n- suporte remoto e presencial (computadores lentos, impressora, e-mail, Office);\n- redes e Wi-Fi do escritório;\n- backup e recuperação de arquivos;\n- contrato mensal de suporte (atendimento ilimitado em horário comercial).\nHorário: segunda a sexta, 8h às 18h. Atendimento presencial só na Grande São Paulo.\n\n## Como você escreve\n- Mensagens curtas, como uma pessoa no WhatsApp: no máximo 3 frases, sem listas, sem markdown, sem negrito.\n- Uma pergunta por vez. Use o nome da pessoa quando souber.\n- Português do Brasil, tom cordial e direto. No máximo um emoji, e só se a pessoa usar também.\n- Se perguntarem se você é um robô, diga a verdade: é a assistente virtual da Nexa TI, e uma pessoa da equipe pode assumir quando precisar.\n\n## O que você faz\n1. Entende o que a pessoa precisa e responde dúvidas gerais sobre os serviços acima.\n2. Para orçamento, descobre, uma pergunta por mensagem: nome, empresa, quantos computadores/pessoas e qual o problema ou serviço. Não invente preço, prazo nem disponibilidade — isso é com a equipe.\n3. Quando tiver nome, empresa e necessidade claros num pedido de orçamento, o lead está \"Qualificado\": agradeça e diga que alguém da equipe vai continuar por aqui — e marque precisa_humano = true.\n\n## Quando passar para humano (precisa_humano = true)\n- lead qualificado para orçamento (item 3 acima);\n- reclamação, cobrança, cancelamento ou cliente irritado;\n- a pessoa pede para falar com alguém;\n- pergunta que você não sabe responder com segurança, ou fora do escopo da Nexa TI.\nNesses casos, \"resposta\" é uma mensagem curta avisando que alguém da equipe vai continuar a conversa por aqui. Nunca prometa prazo.\n\n## Campos da saída\n- resposta: o texto que vai para o cliente.\n- precisa_humano / motivo_humano: conforme as regras acima (motivo vazio se não precisar).\n- intencao: Dúvida, Orçamento, Suporte, Reclamação ou Outro.\n- status: Em conversa, Qualificado, Não qualificado (claramente fora do perfil, ex.: pessoa física fora de SP pedindo visita) ou Encerrado (a pessoa se despediu).\n- nome_cliente: o nome da PESSOA com quem você conversa, se ela disse (nunca o nome da empresa — a empresa vai no resumo); senão, vazio.\n- resumo: 1 ou 2 frases com o que se sabe do lead até agora (para a equipe ler no CRM).\n\n## Formato\nResponda SEMPRE e SOMENTE com um objeto JSON com exatamente estes campos: resposta (texto), precisa_humano (true/false), motivo_humano (texto), intencao (um destes: Dúvida, Orçamento, Suporte, Reclamação, Outro), status (um destes: Em conversa, Qualificado, Não qualificado, Encerrado), nome_cliente (texto), resumo (texto). Atenção: \"Não qualificado\" é status, nunca intenção. Nada fora do JSON.",
           "maxIterations": 3,
           "enableStreaming": false
         }
@@ -286,23 +286,9 @@
     },
     {
       "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"resposta\": {\n      \"type\": \"string\"\n    },\n    \"precisa_humano\": {\n      \"type\": \"boolean\"\n    },\n    \"motivo_humano\": {\n      \"type\": \"string\"\n    },\n    \"intencao\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Dúvida\",\n        \"Orçamento\",\n        \"Suporte\",\n        \"Reclamação\",\n        \"Outro\"\n      ]\n    },\n    \"status\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Em conversa\",\n        \"Qualificado\",\n        \"Não qualificado\",\n        \"Encerrado\"\n      ]\n    },\n    \"nome_cliente\": {\n      \"type\": \"string\"\n    },\n    \"resumo\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"resposta\",\n    \"precisa_humano\",\n    \"motivo_humano\",\n    \"intencao\",\n    \"status\",\n    \"nome_cliente\",\n    \"resumo\"\n  ]\n}"
+        "jsCode": "// Transforma a decisão da IA no que o resto do workflow precisa: texto final,\n// pausa de digitação e os valores das colunas do Monday.\nconst cfg = $('Configuração').first().json;\nconst msg = $('Decidir se responde').first().json;\n// A IA devolve JSON (modo json_object), mas quem valida é este nó — não o parser do\n// próprio agente, que recusava a resposta inteira por um campo fora da lista.\n// Campo inválido vira um valor seguro; JSON ilegível vira passagem para humano.\nconst INTENCOES = ['Dúvida', 'Orçamento', 'Suporte', 'Reclamação', 'Outro'];\nconst STATUS = ['Em conversa', 'Qualificado', 'Não qualificado', 'Encerrado'];\nlet ia;\nlet falhaFormato = false;\ntry {\n  const bruto = $input.first().json.output;\n  ia = typeof bruto === 'string' ? JSON.parse(bruto) : bruto;\n  if (!ia || typeof ia !== 'object') throw new Error('saída vazia');\n} catch (e) {\n  falhaFormato = true;\n  ia = { precisa_humano: true, motivo_humano: 'resposta da IA ilegível: ' + e.message };\n}\nif (!INTENCOES.includes(ia.intencao)) ia.intencao = 'Outro';\nif (!STATUS.includes(ia.status)) ia.status = 'Em conversa';\n\nconst precisaHumano = ia.precisa_humano === true || falhaFormato;\nconst status = precisaHumano ? 'Aguardando humano' : ia.status;\nconst resposta = (ia.resposta || '').trim()\n  || 'Obrigado pela mensagem! Vou passar para alguém da equipe, que já te responde por aqui.';\n\n// Pausa proporcional ao tamanho: ~45 ms por caractere, entre 2 e 12 segundos.\n// Responder em 200 ms um texto de três linhas é o sinal mais claro de robô.\nconst delay = Math.min(12000, Math.max(2000, 1500 + resposta.length * 45));\n\nconst agora = new Date().toISOString();\nconst colunas = {\n  telefone: { phone: msg.wa_id, countryShortName: 'BR' },\n  wa_id: msg.wa_id,\n  status: { label: status },\n  intencao: { label: ia.intencao },\n  resumo: { text: ia.resumo || '' },\n  mensagem_recente: { text: msg.texto },\n  atualizado_em: { date: agora.slice(0, 10), time: agora.slice(11, 19) },\n};\nconst nomeItem = (ia.nome_cliente || msg.nome_contato || msg.wa_id).slice(0, 80);\nconst boardId = String(cfg.monday_board_id);\n\nreturn [{\n  json: {\n    ...msg,\n    resposta,\n    delay,\n    precisa_humano: precisaHumano,\n    motivo_humano: ia.motivo_humano || null,\n    intencao: ia.intencao,\n    status,\n    nome_cliente: ia.nome_cliente || '',\n    monday_criar: {\n      query: 'mutation ($board: ID!, $nome: String!, $cols: JSON!) { create_item (board_id: $board, item_name: $nome, column_values: $cols) { id } }',\n      variables: { board: boardId, nome: nomeItem, cols: JSON.stringify(colunas) },\n    },\n    monday_atualizar: {\n      query: 'mutation ($board: ID!, $item: ID!, $cols: JSON!) { change_multiple_column_values (board_id: $board, item_id: $item, column_values: $cols) { id } }',\n      variables: { board: boardId, item: String(msg.monday_item_id || ''), cols: JSON.stringify(colunas) },\n    },\n  },\n}];"
       },
       "id": "b5000000-0000-4000-8000-000000000013",
-      "name": "Formato da resposta",
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        1760,
-        480
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Transforma a decisão da IA no que o resto do workflow precisa: texto final,\n// pausa de digitação e os valores das colunas do Monday.\nconst cfg = $('Configuração').first().json;\nconst msg = $('Decidir se responde').first().json;\nconst ia = $input.first().json.output;\n\nconst precisaHumano = !!ia.precisa_humano;\nconst status = precisaHumano ? 'Aguardando humano' : ia.status;\nconst resposta = (ia.resposta || '').trim()\n  || 'Obrigado pela mensagem! Vou passar para alguém da equipe, que já te responde por aqui.';\n\n// Pausa proporcional ao tamanho: ~45 ms por caractere, entre 2 e 12 segundos.\n// Responder em 200 ms um texto de três linhas é o sinal mais claro de robô.\nconst delay = Math.min(12000, Math.max(2000, 1500 + resposta.length * 45));\n\nconst agora = new Date().toISOString();\nconst colunas = {\n  telefone: { phone: msg.wa_id, countryShortName: 'BR' },\n  wa_id: msg.wa_id,\n  status: { label: status },\n  intencao: { label: ia.intencao },\n  resumo: { text: ia.resumo || '' },\n  mensagem_recente: { text: msg.texto },\n  atualizado_em: { date: agora.slice(0, 10), time: agora.slice(11, 19) },\n};\nconst nomeItem = (ia.nome_cliente || msg.nome_contato || msg.wa_id).slice(0, 80);\nconst boardId = String(cfg.monday_board_id);\n\nreturn [{\n  json: {\n    ...msg,\n    resposta,\n    delay,\n    precisa_humano: precisaHumano,\n    motivo_humano: ia.motivo_humano || null,\n    intencao: ia.intencao,\n    status,\n    nome_cliente: ia.nome_cliente || '',\n    monday_criar: {\n      query: 'mutation ($board: ID!, $nome: String!, $cols: JSON!) { create_item (board_id: $board, item_name: $nome, column_values: $cols) { id } }',\n      variables: { board: boardId, nome: nomeItem, cols: JSON.stringify(colunas) },\n    },\n    monday_atualizar: {\n      query: 'mutation ($board: ID!, $item: ID!, $cols: JSON!) { change_multiple_column_values (board_id: $board, item_id: $item, column_values: $cols) { id } }',\n      variables: { board: boardId, item: String(msg.monday_item_id || ''), cols: JSON.stringify(colunas) },\n    },\n  },\n}];"
-      },
-      "id": "b5000000-0000-4000-8000-000000000014",
       "name": "Preparar resposta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -319,7 +305,7 @@
           "queryReplacement": "={{ [ $json.registro_id, $json.intencao, $json.resposta, $json.precisa_humano, $json.nome_cliente || '' ] }}"
         }
       },
-      "id": "b5000000-0000-4000-8000-000000000015",
+      "id": "b5000000-0000-4000-8000-000000000014",
       "name": "Registrar resposta",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -348,7 +334,7 @@
           "timeout": 60000
         }
       },
-      "id": "b5000000-0000-4000-8000-000000000016",
+      "id": "b5000000-0000-4000-8000-000000000015",
       "name": "Enviar no WhatsApp (com digitação)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -374,7 +360,7 @@
           },
           "conditions": [
             {
-              "id": "c16",
+              "id": "c15",
               "leftValue": "={{ !!$('Preparar resposta').first().json.monday_item_id }}",
               "rightValue": true,
               "operator": {
@@ -388,7 +374,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "b5000000-0000-4000-8000-000000000017",
+      "id": "b5000000-0000-4000-8000-000000000016",
       "name": "Lead já existe no Monday?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -410,7 +396,7 @@
           "timeout": 20000
         }
       },
-      "id": "b5000000-0000-4000-8000-000000000018",
+      "id": "b5000000-0000-4000-8000-000000000017",
       "name": "Atualizar lead no Monday",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -438,7 +424,7 @@
           "timeout": 20000
         }
       },
-      "id": "b5000000-0000-4000-8000-000000000019",
+      "id": "b5000000-0000-4000-8000-000000000018",
       "name": "Criar lead no Monday",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -461,7 +447,7 @@
           "queryReplacement": "={{ [ $('Preparar resposta').first().json.wa_id, $json.data.create_item.id ] }}"
         }
       },
-      "id": "b5000000-0000-4000-8000-000000000020",
+      "id": "b5000000-0000-4000-8000-000000000019",
       "name": "Guardar ID do lead",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -659,17 +645,6 @@
           {
             "node": "Agente de atendimento",
             "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Formato da resposta": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "Agente de atendimento",
-            "type": "ai_outputParser",
             "index": 0
           }
         ]

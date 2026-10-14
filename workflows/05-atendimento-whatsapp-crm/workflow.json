@@ -441,18 +441,76 @@
     },
     {
       "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c18",
+              "leftValue": "={{ !($json.errors && $json.errors.length) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "b5000000-0000-4000-8000-000000000019",
+      "name": "Item ainda existe no Monday?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3080,
+        160
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b5000000-0000-4000-8000-000000000020",
+      "name": "Lead atualizado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        3300,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// O Monday (GraphQL) responde erro com HTTP 200 e a mensagem dentro do corpo —\n// o nó HTTP trata isso como sucesso. Sem este nó, o lead deixava de ser gravado\n// com a execução verde. Aqui o erro vira erro de verdade.\nconst r = $input.first().json;\nif (r.errors?.length || !r.data?.create_item?.id) {\n  throw new Error('Monday recusou a criação do lead: ' + (r.errors || []).map((e) => e.message).join(' | '));\n}\nreturn [{ json: { monday_item_id: r.data.create_item.id } }];"
+      },
+      "id": "b5000000-0000-4000-8000-000000000021",
+      "name": "Conferir criação no Monday",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        360
+      ]
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
         "query": "UPDATE portfolio.atendimento_contatos\n   SET monday_item_id = $2\n WHERE wa_id = $1\nRETURNING wa_id, monday_item_id;",
         "options": {
-          "queryReplacement": "={{ [ $('Preparar resposta').first().json.wa_id, $json.data.create_item.id ] }}"
+          "queryReplacement": "={{ [ $('Preparar resposta').first().json.wa_id, $json.monday_item_id ] }}"
         }
       },
-      "id": "b5000000-0000-4000-8000-000000000019",
+      "id": "b5000000-0000-4000-8000-000000000022",
       "name": "Guardar ID do lead",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        3080,
+        3300,
         360
       ],
       "credentials": {
@@ -617,7 +675,47 @@
         ]
       ]
     },
+    "Atualizar lead no Monday": {
+      "main": [
+        [
+          {
+            "node": "Item ainda existe no Monday?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item ainda existe no Monday?": {
+      "main": [
+        [
+          {
+            "node": "Lead atualizado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Criar lead no Monday",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Criar lead no Monday": {
+      "main": [
+        [
+          {
+            "node": "Conferir criação no Monday",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conferir criação no Monday": {
       "main": [
         [
           {

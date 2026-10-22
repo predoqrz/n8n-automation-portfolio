@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    # Postgres 16 Alpine + pgvector (base vetorial do workflow 03). Ver infra/postgres/Dockerfile.
+    build: ./postgres
+    image: n8n-portfolio/postgres-pgvector:16
     container_name: n8n-postgres
     restart: unless-stopped
     environment:
@@ -50,9 +52,15 @@ services:
       # Desligada, o n8n apaga na hora. Custo: o histórico dos workflows que salvam
       # execuções (01 e 02) não expira sozinho — limpar à mão quando crescer.
       EXECUTIONS_DATA_PRUNE: "false"
+      # O n8n 2 só lê/grava arquivos em ~/.n8n-files por padrão. O workflow 03 lê a base
+      # de conhecimento de /files/base-conhecimento (montada só leitura, abaixo).
+      N8N_RESTRICT_FILE_ACCESS_TO: /files
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
+      # Base de conhecimento do workflow 03, versionada no repositório. Somente leitura:
+      # o n8n consulta os documentos, nunca os altera.
+      - ../workflows/03-agente-base-conhecimento/base-conhecimento:/files/base-conhecimento:ro
     depends_on:
       postgres:
         condition: service_healthy

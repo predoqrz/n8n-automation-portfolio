@@ -19,6 +19,8 @@ o que acontece quando a API de destino cai.
 | 03 | [Agente de IA sobre base de conhecimento](workflows/03-agente-base-conhecimento) | Mesmas dúvidas de procedimento interno chegam ao suporte toda semana | ✅ Concluído |
 | 04 | [Onboarding e offboarding](workflows/04-onboarding-offboarding) | Criação e revogação de acessos é manual, lenta e esquece etapas | 🔜 Planejado |
 | 05 | [Atendimento humanizado no WhatsApp com CRM](workflows/05-atendimento-whatsapp-crm) | Lead que chega pelo WhatsApp se perde na conversa e ninguém registra o que ele pediu | ✅ Concluído |
+| 06 | [Robô de consulta com fila no Orchestrator](workflows/06-robo-fila-orchestrator) | Consulta manual de dados em site, linha a linha, sem registro do que já foi feito | 🔜 Planejado |
+| 07 | [Ponte n8n ↔ UiPath Orchestrator](workflows/07-ponte-n8n-uipath) | Robôs de RPA isolados: ninguém fora do time de RPA dispara nem acompanha | 🔜 Planejado |
 
 Legenda de status: 🔜 Planejado · 🚧 Em construção · ✅ Concluído
 

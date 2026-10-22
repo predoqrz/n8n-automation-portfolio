@@ -1,6 +1,6 @@
 # 03 — Agente de IA sobre base de conhecimento interna
 
-**Status:** 🚧 Em construção
+**Status:** ✅ Concluído
 **Integrações:** pasta local de documentos · PostgreSQL com pgvector · OpenAI (embeddings e chat) · chat do n8n
 **Competências demonstradas:** RAG (busca por significado + geração), ingestão idempotente
 de documentos, embeddings, banco vetorial, AI Agent com ferramenta, controle do que a IA
@@ -160,9 +160,17 @@ Para a indexação: rode duas vezes sem mudar nada (a segunda para em *Nada mudo
 
 ## Resultado
 
-*A preencher com os prints.* Até aqui: 5 documentos, 12 trechos; indexação idempotente
-provada (igual, alterado, removido); 45 perguntas de teste, 41 respondidas pela base e 4
-corretamente recusadas por estarem fora dela.
+![Chat respondendo com a fonte e recusando pergunta fora da base](assets/chat-assistente.png)
+
+![Workflow de indexação](assets/canvas-indexacao.png)
+
+![Workflow do agente](assets/canvas-agente.png)
+
+- 5 documentos, 12 trechos; indexação idempotente provada (igual, alterado, removido).
+- 45 perguntas de teste: 41 respondidas pela base e 4 corretamente recusadas por estarem fora dela.
+- 6 perguntas seguidas na mesma conversa, ~3 s cada, depois da troca da memória.
+
+Para entender o RAG por dentro, com exercícios: [ESTUDO.md](ESTUDO.md).
 
 ## Próximos passos
 

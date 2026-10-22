@@ -1,8 +1,7 @@
 # Checklist — workflow 03
 
-**Onde eu parei:** indexação e agente funcionando e testados (22/10/2026). Faltam os prints em
-`assets/` (chat respondendo com fonte, chat recusando pergunta fora da base, canvas dos dois
-workflows) e o merge na `main` (manual, pelo Pedro)
+**Onde eu parei:** concluído (22/10/2026). Falta só o merge na `main` (manual, pelo Pedro).
+Estudo pendente: exercícios em [ESTUDO.md](ESTUDO.md)
 
 ---
 
@@ -37,8 +36,8 @@ workflows) e o merge na `main` (manual, pelo Pedro)
 
 ## Etapa 4 — fechar
 
-- [ ] Prints em `assets/`
-- [ ] README: Resultado com os prints
+- [x] Prints em `assets/` (chat, canvas da indexação, canvas do agente)
+- [x] README: Resultado com os prints
 - [ ] Merge na `main` (manual, pelo Pedro)
 
 ---

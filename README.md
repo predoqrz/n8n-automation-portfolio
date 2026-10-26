@@ -17,7 +17,7 @@ o que acontece quando a API de destino cai.
 | 01 | [Triagem automática de chamados](workflows/01-triagem-chamados) | Chamados chegam por e-mail sem categoria e sem prioridade, e alguém precisa ler um por um | ✅ Concluído |
 | 02 | [Monitor de disponibilidade](workflows/02-monitor-disponibilidade) | Queda de serviço só é descoberta quando o usuário reclama | ✅ Concluído |
 | 03 | [Agente de IA sobre base de conhecimento](workflows/03-agente-base-conhecimento) | Mesmas dúvidas de procedimento interno chegam ao suporte toda semana | ✅ Concluído |
-| 04 | [Onboarding e offboarding](workflows/04-onboarding-offboarding) | Criação e revogação de acessos é manual, lenta e esquece etapas | 🔜 Planejado |
+| 04 | [Onboarding e offboarding](workflows/04-onboarding-offboarding) | Criação e revogação de acessos é manual, lenta e esquece etapas | ✅ Concluído |
 | 05 | [Atendimento humanizado no WhatsApp com CRM](workflows/05-atendimento-whatsapp-crm) | Lead que chega pelo WhatsApp se perde na conversa e ninguém registra o que ele pediu | ✅ Concluído |
 
 Legenda de status: 🔜 Planejado · 🚧 Em construção · ✅ Concluído

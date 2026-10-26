@@ -1,7 +1,6 @@
 # Checklist — workflow 04
 
-**Onde eu parei:** os três workflows funcionando e testados ponta a ponta (26/10/2026). Faltam os
-prints em `assets/` e o merge na `main` (manual, pelo Pedro)
+**Onde eu parei:** concluído (26/10/2026). Falta só o merge na `main` (manual, pelo Pedro)
 
 ---
 
@@ -31,9 +30,8 @@ prints em `assets/` e o merge na `main` (manual, pelo Pedro)
 
 ## Etapa 3 — fechar
 
-- [ ] Prints em `assets/`: formulário, mensagem de aprovação no Discord, formulário de
-      aprovação, canvas dos três workflows
-- [ ] README: Resultado com os prints
+- [x] Prints em `assets/`: formulário, aprovação, Discord, canvas dos três workflows
+- [x] README: Resultado com os prints
 - [ ] Merge na `main` (manual, pelo Pedro)
 
 ---

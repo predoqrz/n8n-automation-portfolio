@@ -1,6 +1,6 @@
 # 04 — Onboarding e offboarding de colaborador
 
-**Status:** 🚧 Em construção
+**Status:** ✅ Concluído
 **Integrações:** formulário do n8n · PostgreSQL (diretório e sistemas simulados) · Discord
 **Competências demonstradas:** sub-workflows, aprovação humana no meio do fluxo
 (*human-in-the-loop*), rollback por compensação (padrão *saga*), retomada de processo
@@ -177,9 +177,23 @@ UPDATE portfolio.dir_sistemas SET disponivel = false WHERE codigo = 'vpn';  -- e
 
 ## Resultado
 
-*A preencher com os prints.* Todos os cenários acima testados ponta a ponta, incluindo a
-regressão depois das correções: zero execuções com erro — as falhas simuladas seguem pelos
-caminhos de erro desenhados (rollback e interrupção), em vez de derrubar o workflow.
+| Formulário do RH | Aprovação do gestor |
+|---|---|
+| ![Formulário de admissão ou desligamento](assets/formulario.png) | ![Formulário de aprovação do gestor](assets/aprovacao-gestor.png) |
+
+![Mensagens no Discord: admissão concluída, pedido de aprovação, desligamento incompleto e concluído, admissão revertida, pedidos descartados](assets/discord-rh.png)
+
+![04a · Solicitação](assets/canvas-solicitacao.png)
+
+![04b · Admissão, com o laço e a saída de erro para o rollback](assets/canvas-admissao.png)
+
+![04c · Desligamento, com o laço e a saída de erro para a interrupção](assets/canvas-desligamento.png)
+
+- Todos os cenários da tabela acima testados ponta a ponta, incluindo a regressão depois das
+  correções: **zero execuções com erro** — as falhas simuladas seguem pelos caminhos de erro
+  desenhados (rollback e interrupção), em vez de derrubar o workflow.
+- O link de aprovação aponta para o n8n em `localhost`: só abre no computador que roda o
+  n8n. Com o n8n numa URL pública, abriria de qualquer lugar.
 
 ## Próximos passos
 

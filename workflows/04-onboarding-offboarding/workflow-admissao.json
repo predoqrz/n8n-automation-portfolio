@@ -1,0 +1,333 @@
+{
+  "name": "04b · Admissão (sub-workflow)",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "b4b00000-0000-4000-8000-000000000001",
+      "name": "Recebe a solicitação",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE portfolio.rh_solicitacoes SET status = 'em_execucao', atualizada_em = now() WHERE id = $1 RETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [ $('Recebe a solicitação').first().json.solicitacao_id ] }}"
+        }
+      },
+      "id": "b4b00000-0000-4000-8000-000000000002",
+      "name": "Marcar em execução",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        220,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Retomada: se a etapa já foi concluída nesta solicitação, pula. Senão, chama a \"API\"\n-- e só registra a etapa se ela não falhar (o resultado da API é argumento do registro).\nSELECT CASE WHEN portfolio.rh_etapa_feita($1, 'criar_conta') THEN 'pulada (já concluída)'\n            ELSE portfolio.rh_registrar_etapa($1, 'criar_conta', 'concluida', portfolio.dir_criar_conta($2, $3, $4))\n       END AS resultado;",
+        "options": {
+          "queryReplacement": "={{ [ $('Recebe a solicitação').first().json.solicitacao_id, $('Recebe a solicitação').first().json.login, $('Recebe a solicitação').first().json.nome, $('Recebe a solicitação').first().json.perfil ] }}"
+        }
+      },
+      "id": "b4b00000-0000-4000-8000-000000000003",
+      "name": "Criar conta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- A matriz de acesso mora no banco: mudar a política não exige mexer no workflow.\nSELECT sistema FROM portfolio.rh_matriz_acessos WHERE perfil = $1 ORDER BY sistema;",
+        "options": {
+          "queryReplacement": "={{ [ $('Recebe a solicitação').first().json.perfil ] }}"
+        }
+      },
+      "id": "b4b00000-0000-4000-8000-000000000004",
+      "name": "Listar acessos do perfil",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        660,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "b4b00000-0000-4000-8000-000000000005",
+      "name": "Um sistema por vez",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT CASE WHEN portfolio.rh_etapa_feita($1, 'acesso:' || $2) THEN 'pulada (já concluída)'\n            ELSE portfolio.rh_registrar_etapa($1, 'acesso:' || $2, 'concluida', portfolio.dir_conceder_acesso($3, $2))\n       END AS resultado;",
+        "options": {
+          "queryReplacement": "={{ [ $('Recebe a solicitação').first().json.solicitacao_id, $json.sistema, $('Recebe a solicitação').first().json.login ] }}"
+        }
+      },
+      "id": "b4b00000-0000-4000-8000-000000000006",
+      "name": "Conceder acesso",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1100,
+        420
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Um sistema falhou: compensa tudo o que já foi feito nesta solicitação (padrão saga).\nSELECT portfolio.rh_reverter_admissao($1, $2, 'falha ao conceder ' || $3 || ': ' || $4) AS revertido, $3 AS sistema;",
+        "options": {
+          "queryReplacement": "={{ [ $('Recebe a solicitação').first().json.solicitacao_id, $('Recebe a solicitação').first().json.login, $('Um sistema por vez').item.json.sistema, ($json.message || 'erro') ] }}"
+        }
+      },
+      "id": "b4b00000-0000-4000-8000-000000000007",
+      "name": "Desfazer admissão",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1340,
+        600
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "operation": "sendLegacy",
+        "content": "={{ '↩️ **Admissão de ' + $('Recebe a solicitação').first().json.nome + ' revertida.** Falha ao conceder ' + $json.sistema + '. Desfeito: ' + ($json.revertido || 'nada') + '. Corrija e envie o formulário de novo — o fluxo recomeça.' }}",
+        "options": {
+          "username": "RH · Onboarding e Offboarding"
+        }
+      },
+      "id": "b4b00000-0000-4000-8000-000000000008",
+      "name": "Avisar falha e reversão",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        600
+      ],
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "",
+          "name": "Discord Webhook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Limpa o erro de uma tentativa anterior; o motivo da decisão do gestor fica.\nUPDATE portfolio.rh_solicitacoes SET status = 'concluida', erro = NULL, atualizada_em = now() WHERE id = $1\nRETURNING (SELECT string_agg(substr(etapa, 8), ', ' ORDER BY etapa) FROM portfolio.rh_etapas\n            WHERE solicitacao_id = $1 AND etapa LIKE 'acesso:%' AND status = 'concluida') AS acessos;",
+        "options": {
+          "queryReplacement": "={{ [ $('Recebe a solicitação').first().json.solicitacao_id ] }}"
+        }
+      },
+      "id": "b4b00000-0000-4000-8000-000000000009",
+      "name": "Concluir admissão",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1100,
+        180
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Postgres account"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "operation": "sendLegacy",
+        "content": "={{ '✅ **Admissão de ' + $('Recebe a solicitação').first().json.nome + ' concluída.** Conta: ' + $('Recebe a solicitação').first().json.login + '@grupoaurora.exemplo · Acessos: ' + $json.acessos + '\\n🖥️ TI: preparar equipamento do perfil **' + $('Recebe a solicitação').first().json.perfil + '** para ' + $('Recebe a solicitação').first().json.data_efetiva + '. Gestor: ' + $('Recebe a solicitação').first().json.gestor + '.' }}",
+        "options": {
+          "username": "RH · Onboarding e Offboarding"
+        }
+      },
+      "id": "b4b00000-0000-4000-8000-000000000010",
+      "name": "Avisar TI e gestor",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        180
+      ],
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "",
+          "name": "Discord Webhook account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Recebe a solicitação": {
+      "main": [
+        [
+          {
+            "node": "Marcar em execução",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar em execução": {
+      "main": [
+        [
+          {
+            "node": "Criar conta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar conta": {
+      "main": [
+        [
+          {
+            "node": "Listar acessos do perfil",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar acessos do perfil": {
+      "main": [
+        [
+          {
+            "node": "Um sistema por vez",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Um sistema por vez": {
+      "main": [
+        [
+          {
+            "node": "Concluir admissão",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Conceder acesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conceder acesso": {
+      "main": [
+        [
+          {
+            "node": "Um sistema por vez",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Desfazer admissão",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Desfazer admissão": {
+      "main": [
+        [
+          {
+            "node": "Avisar falha e reversão",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Concluir admissão": {
+      "main": [
+        [
+          {
+            "node": "Avisar TI e gestor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

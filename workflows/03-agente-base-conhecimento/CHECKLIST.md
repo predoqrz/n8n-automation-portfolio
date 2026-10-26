@@ -1,6 +1,6 @@
 # Checklist — workflow 03
 
-**Onde eu parei:** concluído (22/10/2026). Falta só o merge na `main` (manual, pelo Pedro).
+**Onde eu parei:** concluído e na `main` (22/10/2026).
 Estudo pendente: exercícios em [ESTUDO.md](ESTUDO.md)
 
 ---
@@ -38,7 +38,7 @@ Estudo pendente: exercícios em [ESTUDO.md](ESTUDO.md)
 
 - [x] Prints em `assets/` (chat, canvas da indexação, canvas do agente)
 - [x] README: Resultado com os prints
-- [ ] Merge na `main` (manual, pelo Pedro)
+- [x] Merge na `main`
 
 ---
 

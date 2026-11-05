@@ -1,0 +1,6 @@
+[
+  {"id": "A", "nome": "Desligar a máquina", "duracao": 2, "depende_de": []},
+  {"id": "B", "nome": "Trocar a peça",      "duracao": 3, "depende_de": ["A"]},
+  {"id": "C", "nome": "Pintar a estrutura", "duracao": 4, "depende_de": ["A"]},
+  {"id": "D", "nome": "Testar e religar",   "duracao": 1, "depende_de": ["B", "C"]}
+]

@@ -1,0 +1,5 @@
+id,nome,duracao,depende_de
+A,Desligar a máquina,2,
+B,Trocar a peça,3,A
+C,Pintar a estrutura,4,A
+D,Testar e religar,1,B;C
